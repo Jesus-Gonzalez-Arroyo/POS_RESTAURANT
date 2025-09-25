@@ -1,3 +1,9 @@
 import { Routes } from '@angular/router';
+import { Login } from './pages/login/login'
+import { Dashboard } from './pages/dashboard/dashboard'
+import { AuthGuard } from './core/guards/auth/auth-roles-guard';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+    { path: '', component: Login},
+    { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard], data: { roles: ["1"] } }
+];
