@@ -1,20 +1,28 @@
-name: Delete merged branches
+name: Delete merged branch
 
 on:
   pull_request:
-    types:
-      - closed
+    types: [closed]
 
 jobs:
-  delete-branch:
+  delete-merged-branch:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Delete source branch if not main or dev
-        uses: peter-evans/delete-branch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.event.pull_request.head.ref }}
-        if: |
-          github.event.pull_request.head.ref != 'main' &&
-          github.event.pull_request.head.ref != 'dev'
+      - name: Delete branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "Rama mergeada: $BRANCH_NAME"
+          
+          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "dev" ]]; then
+            echo "No se puede eliminar la rama principal ($BRANCH_NAME)."
+            exit 0
+          fi
+
+          curl -X DELETE \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$REPO/git/refs/heads/$BRANCH_NAME
