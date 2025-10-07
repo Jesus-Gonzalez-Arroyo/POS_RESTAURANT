@@ -1,12 +1,48 @@
 <div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
     <div class="flex justify-between items-center mb-4">
         <div class="w-[70%]">
-            <h2 class="text-gray-500 text-xl mb-4">Lista de Productos</h2>
-            <input type="text" placeholder="Buscar productos..."
-                class="mb-4 p-2 border border-gray-300 rounded w-full focus:outline-none" />
+            <h2 class="text-gray-500 text-xl">Lista de Productos</h2>
+            <div class="flex justify-between items-center gap-5">
+                <div class="w-[60%] mt-[22px]">
+                    <input [(ngModel)]="searchTerm" type="text" placeholder="Buscar productos..."
+                        class="mb-4 p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+                <div class="w-[40%] flex gap-4 mb-4">
+                    <!-- Filtro por categoría -->
+                    <div class="flex-1">
+                        <label class="block text-gray-700 text-sm font-medium mb-1">Categoría</label>
+                        <select [(ngModel)]="selectedCategory"
+                            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option *ngFor="let category of categories" [value]="category">
+                                {{ category }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por disponibilidad -->
+                    <div class="flex-1">
+                        <label class="block text-gray-700 text-sm font-medium mb-1">Disponibilidad</label>
+                        <select [(ngModel)]="selectedAvailability"
+                            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option *ngFor="let availability of availabilities" [value]="availability">
+                                {{ availability }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Botón limpiar filtros -->
+                    <div class="flex items-end">
+                        <button (click)="clearFilters()"
+                            class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors">
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div>
-            <button (click)="showAddProductModal()" class="text-white hover:bg-green-600 bg-green-500 px-5 py-3 rounded mb-4">Agregar Producto</button>
+            <button (click)="showAddProductModal()"
+                class="text-white hover:bg-green-600 bg-green-500 px-5 py-3 rounded mb-4">Agregar Producto</button>
         </div>
     </div>
     <div>
@@ -37,8 +73,8 @@
                     <td class="px-6 py-4 whitespace-nowrap">{{ product.profit }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ product.category }}</td>
                     <td class="px-6 py-4 whitespace-nowrap"><span
-                            class="px-2 inline-flex text-xs leading-5 rounded text-white"
-                            [ngClass]="{'bg-green-500': product.availability === 'In Stock', 'bg-red-500': product.availability === 'Out of Stock'}">{{
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                            [ngClass]="{'bg-green-200 text-green-800': product.availability === 'In Stock', 'bg-red-200 text-red-800': product.availability === 'Out of Stock'}">{{
                             product.availability }}</span></td>
                     <td>
                         <button class="text-white hover:bg-blue-600 bg-blue-500 px-5 py-1 mx-2 rounded"
@@ -51,7 +87,199 @@
         </table>
     </div>
 
+    <!-- Paginador -->
+    <div class="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <!-- Información de paginación -->
+        <div class="flex flex-1 justify-between sm:hidden">
+            <button 
+                (click)="previousPage()" 
+                [disabled]="currentPage === 1"
+                class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Anterior
+            </button>
+            <button 
+                (click)="nextPage()" 
+                [disabled]="currentPage === totalPages"
+                class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Siguiente
+            </button>
+        </div>
+        
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div class="flex items-center gap-4">
+                <p class="text-sm text-gray-700">
+                    Mostrando <span class="font-medium">{{ paginationInfo.start }}</span> a 
+                    <span class="font-medium">{{ paginationInfo.end }}</span> de 
+                    <span class="font-medium">{{ paginationInfo.total }}</span> resultados
+                </p>
+                
+                <!-- Selector de elementos por página -->
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700">Mostrar:</label>
+                    <select 
+                        [(ngModel)]="itemsPerPage" 
+                        (change)="changeItemsPerPage(itemsPerPage)"
+                        class="border border-gray-300 rounded px-2 py-1 text-sm">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                    </select>
+                    <span class="text-sm text-gray-700">por página</span>
+                </div>
+            </div>
+            
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <!-- Botón Anterior -->
+                    <button 
+                        (click)="previousPage()" 
+                        [disabled]="currentPage === 1"
+                        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Anterior</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Números de página -->
+                    <button 
+                        *ngFor="let page of pages" 
+                        (click)="goToPage(page)"
+                        [class]="'relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ' + 
+                                (currentPage === page 
+                                 ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600' 
+                                 : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50')">
+                        {{ page }}
+                    </button>
+                    
+                    <!-- Botón Siguiente -->
+                    <button 
+                        (click)="nextPage()" 
+                        [disabled]="currentPage === totalPages"
+                        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Siguiente</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar producto -->
+
     <app-modal [show]="showModal" [title]="modalTitle" (close)="showModal = false">
-        <p>Contenido del modal para agregar o editar un producto.</p>
+        <form class="grid grid-cols-2 gap-4 p-4" (ngSubmit)="saveProduct()">
+            <!-- Nombre del producto -->
+            <div class="col-span-2">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productName">
+                    Nombre del Producto *
+                </label>
+                <input 
+                    id="productName"
+                    type="text" 
+                    [(ngModel)]="newProduct.name"
+                    name="productName"
+                    placeholder="Ingrese el nombre del producto"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                />
+            </div>
+
+            <!-- Precio -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productPrice">
+                    Precio *
+                </label>
+                <input 
+                    id="productPrice"
+                    type="text" 
+                    [(ngModel)]="newProduct.price"
+                    name="productPrice"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                />
+            </div>
+
+            <!-- Ganancia -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productProfit">
+                    Ganancia *
+                </label>
+                <input 
+                    id="productProfit"
+                    type="text" 
+                    [(ngModel)]="newProduct.profit"
+                    name="productProfit"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                />
+            </div>
+
+            <!-- Categoría -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productCategory">
+                    Categoría *
+                </label>
+                <select 
+                    id="productCategory"
+                    [(ngModel)]="newProduct.category"
+                    name="productCategory"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                >
+                    <option value="">Seleccionar categoría</option>
+                    <option value="Category 1">Category 1</option>
+                    <option value="Category 2">Category 2</option>
+                    <option value="Category 3">Category 3</option>
+                    <option value="Bebidas">Bebidas</option>
+                    <option value="Comida">Comida</option>
+                    <option value="Postres">Postres</option>
+                </select>
+            </div>
+
+            <!-- Disponibilidad -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productAvailability">
+                    Disponibilidad *
+                </label>
+                <select 
+                    id="productAvailability"
+                    [(ngModel)]="newProduct.availability"
+                    name="productAvailability"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                >
+                    <option value="">Seleccionar disponibilidad</option>
+                    <option value="In Stock">En Stock</option>
+                    <option value="Out of Stock">Sin Stock</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-span-2 flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+                <button 
+                    type="button"
+                    (click)="cancelForm()"
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    Cancelar
+                </button>
+                <button 
+                    type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    {{ modalTitle === 'Agregar Producto' ? 'Guardar Producto' : 'Actualizar Producto' }}
+                </button>
+            </div>
+        </form>
     </app-modal>
 </div>
