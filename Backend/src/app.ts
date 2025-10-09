@@ -3,10 +3,12 @@ import cors from 'cors';
 import router_products  from './routes/products.route';
 import router_users from './routes/user.route';
 import router_auth from './routes/auth.route';
+import errorHandler from './middlewares/error.middleware'
 
 const app = express();
 
 app.use(cors());
+app.use(errorHandler);
 
 app.use(express.json());
 app.use('/api/v1/products', router_products);

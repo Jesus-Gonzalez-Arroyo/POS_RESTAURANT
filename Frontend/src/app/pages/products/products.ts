@@ -1,28 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
+import { ProductsService, Product, CreateProductDto } from '../../core/services/products/products.service';
 
 @Component({
   selector: 'app-products',
-  imports: [CommonModule, FormsModule, Modal],
+  imports: [CommonModule, FormsModule, HttpClientModule, Modal],
   templateUrl: './products.html',
   styleUrl: './products.css'
 })
-export class Products {
+export class Products implements OnInit {
   showModal = false;
   modalTitle = 'Agregar Producto';
   searchTerm = '';
   selectedCategory = 'Todas';
   selectedAvailability = 'Todas';
+  loading = false;
+  error: string | null = null;
 
   newProduct = {
     name: '',
     price: null as number | null,
-    profit: null as number | null,
+    earnings: null as number | null,
     category: '',
-    availability: ''
+    availability: true
   };  
+  
   // Propiedades de paginación
   currentPage = 1;
   itemsPerPage = 5;
@@ -31,28 +36,40 @@ export class Products {
   isEditMode = false;
   editingProductId: number | null = null;
   
-  allProducts = [
-    { id: 1, name: 'Product 1', price: 100, profit: 50, category: 'Category 1', availability: 'In Stock' },
-    { id: 2, name: 'Product 2', price: 200, profit: 80, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 3, name: 'Product 3', price: 300, profit: 120, category: 'Category 1', availability: 'In Stock' },
-    { id: 4, name: 'Product 4', price: 400, profit: 150, category: 'Category 3', availability: 'In Stock' },
-    { id: 5, name: 'Product 5', price: 500, profit: 200, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 1, name: 'Product 1', price: 100, profit: 50, category: 'Category 1', availability: 'In Stock' },
-    { id: 2, name: 'Product 2', price: 200, profit: 80, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 3, name: 'Product 3', price: 300, profit: 120, category: 'Category 1', availability: 'In Stock' },
-    { id: 4, name: 'Product 4', price: 400, profit: 150, category: 'Category 3', availability: 'In Stock' },
-    { id: 5, name: 'Product 5', price: 500, profit: 200, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 1, name: 'Product 1', price: 100, profit: 50, category: 'Category 1', availability: 'In Stock' },
-    { id: 2, name: 'Product 2', price: 200, profit: 80, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 3, name: 'Product 3', price: 300, profit: 120, category: 'Category 1', availability: 'In Stock' },
-    { id: 4, name: 'Product 4', price: 400, profit: 150, category: 'Category 3', availability: 'In Stock' },
-    { id: 5, name: 'Product 5', price: 500, profit: 200, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 1, name: 'Product 1', price: 100, profit: 50, category: 'Category 1', availability: 'In Stock' },
-    { id: 2, name: 'Product 2', price: 200, profit: 80, category: 'Category 2', availability: 'Out of Stock' },
-    { id: 3, name: 'Product 3', price: 300, profit: 120, category: 'Category 1', availability: 'In Stock' },
-    { id: 4, name: 'Product 4', price: 400, profit: 150, category: 'Category 3', availability: 'In Stock' },
-    { id: 5, name: 'Product 5', price: 500, profit: 200, category: 'Category 2', availability: 'Out of Stock' }
-  ];
+  allProducts: Product[] = [];
+
+  constructor(private productsService: ProductsService) {}
+
+  ngOnInit() {
+    this.loadProducts();
+  }
+
+  loadProducts() {
+    this.loading = true;
+    this.error = null;
+    
+    this.productsService.getAllProducts().subscribe({
+      next: (products) => {
+        this.allProducts = products;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error cargando productos:', error);
+        this.error = 'Error al cargar los productos';
+        this.loading = false;
+      }
+    });
+  }
+
+  // Función alternativa con formato personalizado (punto como separador de miles)
+  formatPriceCustom(price: number): string {
+    if (price === null || price === undefined) {
+      return '0';
+    }
+    
+    // Convierte a string y agrega puntos como separadores de miles
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
 
   // Obtener categorías únicas
   get categories() {
@@ -62,7 +79,7 @@ export class Products {
 
   // Obtener disponibilidades únicas
   get availabilities() {
-    const uniqueAvailabilities = [...new Set(this.allProducts.map(product => product.availability))];
+    const uniqueAvailabilities = [...new Set(this.allProducts.map(product => product.availability ? 'Disponible' : 'No disponible'))];
     return ['Todas', ...uniqueAvailabilities];
   }
 
@@ -86,8 +103,9 @@ export class Products {
 
     // Filtrar por disponibilidad
     if (this.selectedAvailability !== 'Todas') {
+      const isAvailable = this.selectedAvailability === 'Disponible';
       filteredProducts = filteredProducts.filter(product => 
-        product.availability === this.selectedAvailability
+        product.availability === isAvailable
       );
     }
 
@@ -128,16 +146,27 @@ export class Products {
   }
 
   deleteProduct(id: number) {
-    this.allProducts = this.allProducts.filter(product => product.id !== id);
+    this.loading = true;
+    this.productsService.deleteProduct(id).subscribe({
+      next: () => {
+        this.allProducts = this.allProducts.filter(product => product.id !== id);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error eliminando producto:', error);
+        this.error = 'Error al eliminar el producto';
+        this.loading = false;
+      }
+    });
   }
 
-  editProduct(product: { id: number; name: string; price: number; profit: number; category: string; availability: string }) {
+  editProduct(product: Product) {
     const existingProduct = this.allProducts.find(p => p.id === product.id);
     if (existingProduct) {
       this.newProduct = {
         name: existingProduct.name,
         price: existingProduct.price,
-        profit: existingProduct.profit,
+        earnings: existingProduct.earnings,
         category: existingProduct.category,
         availability: existingProduct.availability
       };
@@ -215,40 +244,57 @@ export class Products {
 
   addProduct() {
     if (this.isValidProduct()) {
-      const newId = Math.max(...this.allProducts.map(p => p.id)) + 1;
-      const productToAdd = {
-        id: newId,
+      this.loading = true;
+      const productData: CreateProductDto = {
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
-        profit: Number(this.newProduct.profit),
+        earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
         availability: this.newProduct.availability
       };
       
-      this.allProducts.push(productToAdd);
-      this.resetForm();
-      this.showModal = false;
-      console.log('Producto agregado:', productToAdd);
+      this.productsService.createProduct(productData).subscribe({
+        next: (response) => {
+          console.log('Producto agregado:', response);
+          this.loadProducts(); // Recargar la lista
+          this.resetForm();
+          this.showModal = false;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error agregando producto:', error);
+          this.error = 'Error al agregar el producto';
+          this.loading = false;
+        }
+      });
     }
   }
 
   updateProduct() {
     if (this.isValidProduct() && this.editingProductId) {
-      const index = this.allProducts.findIndex(p => p.id === this.editingProductId);
-      if (index !== -1) {
-        this.allProducts[index] = {
-          ...this.allProducts[index],
-          name: this.newProduct.name,
-          price: Number(this.newProduct.price),
-          profit: Number(this.newProduct.profit),
-          category: this.newProduct.category,
-          availability: this.newProduct.availability
-        };
-        
-        this.resetForm();
-        this.showModal = false;
-        console.log('Producto actualizado');
-      }
+      this.loading = true;
+      const productData: CreateProductDto = {
+        name: this.newProduct.name,
+        price: Number(this.newProduct.price),
+        earnings: Number(this.newProduct.earnings),
+        category: this.newProduct.category,
+        availability: this.newProduct.availability
+      };
+      
+      this.productsService.updateProduct(this.editingProductId, productData).subscribe({
+        next: (response) => {
+          console.log('Producto actualizado:', response);
+          this.loadProducts(); // Recargar la lista
+          this.resetForm();
+          this.showModal = false;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error actualizando producto:', error);
+          this.error = 'Error al actualizar el producto';
+          this.loading = false;
+        }
+      });
     }
   }
 
@@ -257,10 +303,9 @@ export class Products {
       this.newProduct.name?.trim() &&
       this.newProduct.price !== null &&
       this.newProduct.price > 0 &&
-      this.newProduct.profit !== null &&
-      this.newProduct.profit >= 0 &&
-      this.newProduct.category?.trim() &&
-      this.newProduct.availability?.trim()
+      this.newProduct.earnings !== null &&
+      this.newProduct.earnings >= 0 &&
+      this.newProduct.category?.trim()
     );
   }
 
@@ -273,9 +318,9 @@ export class Products {
     this.newProduct = {
       name: '',
       price: null as number | null,
-      profit: null as number | null,
+      earnings: null as number | null,
       category: '',
-      availability: ''
+      availability: true
     };
     this.isEditMode = false;
     this.editingProductId = null;

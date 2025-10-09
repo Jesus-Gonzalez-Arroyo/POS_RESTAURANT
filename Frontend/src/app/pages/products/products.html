@@ -2,6 +2,7 @@
     <div class="flex justify-between items-center mb-4">
         <div class="w-[70%]">
             <h2 class="text-gray-500 text-xl">Lista de Productos</h2>
+            
             <div class="flex justify-between items-center gap-5">
                 <div class="w-[60%] mt-[22px]">
                     <input [(ngModel)]="searchTerm" type="text" placeholder="Buscar productos..."
@@ -69,13 +70,13 @@
                 <tr *ngFor="let product of products">
                     <td class="px-6 py-4 whitespace-nowrap">{{ product.id }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ product.name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.price }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.profit }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${{ formatPriceCustom(product.price) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${{ formatPriceCustom(product.earnings) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ product.category }}</td>
                     <td class="px-6 py-4 whitespace-nowrap"><span
                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                            [ngClass]="{'bg-green-200 text-green-800': product.availability === 'In Stock', 'bg-red-200 text-red-800': product.availability === 'Out of Stock'}">{{
-                            product.availability }}</span></td>
+                            [ngClass]="{'bg-green-200 text-green-800': product.availability, 'bg-red-200 text-red-800': !product.availability}">{{
+                            product.availability ? 'Disponible' : 'No disponible' }}</span></td>
                     <td>
                         <button class="text-white hover:bg-blue-600 bg-blue-500 px-5 py-1 mx-2 rounded"
                             (click)="editProduct(product)">Edit</button>
@@ -208,14 +209,14 @@
 
             <!-- Ganancia -->
             <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2" for="productProfit">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productEarnings">
                     Ganancia *
                 </label>
                 <input 
-                    id="productProfit"
-                    type="text" 
-                    [(ngModel)]="newProduct.profit"
-                    name="productProfit"
+                    id="productEarnings"
+                    type="number" 
+                    [(ngModel)]="newProduct.earnings"
+                    name="productEarnings"
                     placeholder="0.00"
                     min="0"
                     step="0.01"
@@ -258,9 +259,8 @@
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 >
-                    <option value="">Seleccionar disponibilidad</option>
-                    <option value="In Stock">En Stock</option>
-                    <option value="Out of Stock">Sin Stock</option>
+                    <option [value]="true">Disponible</option>
+                    <option [value]="false">No disponible</option>
                 </select>
             </div>
 
