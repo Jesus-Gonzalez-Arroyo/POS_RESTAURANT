@@ -13,6 +13,12 @@ import {SidebarService} from '../../../core/services/sidebar/sidebar';
 export class Sidebar implements OnInit, OnDestroy {
   isOpen = false;
   private sub!: Subscription;
+  routes = [
+    { name: 'Dashboard', path: '/dashboard', icon: 'fa-solid fa-house' },
+    { name: 'Ventas', path: '/sales', icon: 'fa-solid fa-cash-register' },
+    { name: 'Órdenes', path: '/orders', icon: 'fa-solid fa-receipt' },
+    { name: 'Productos', path: '/products', icon: 'fa-solid fa-box-open' },
+  ];
 
   constructor(private sidebarService: SidebarService) {}
 
