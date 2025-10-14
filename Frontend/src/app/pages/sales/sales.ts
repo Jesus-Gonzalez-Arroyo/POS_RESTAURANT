@@ -2,6 +2,10 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { Orders } from '../../core/services/orders/orders';
+import { formatPriceCustom } from '../../shared/utils/formatPrice'
+import { Alert, ConfirmAlert } from '../../shared/utils/alert';
+
 @Component({
   selector: 'app-sales',
   imports: [CommonModule, FormsModule],
@@ -10,15 +14,14 @@ import { FormsModule } from '@angular/forms';
   standalone: true
 })
 export class Sales {
+
+  constructor(private ordersService: Orders) {}
+
   selectedCategory = 'Todos';
   categories = ['Todos', 'Pollo Asado', 'Bebidas', 'Acompañamientos', 'Postres'];
   searchTerm = '';
   
-  // Datos del carrito y orden
-  cart: {name: string, price: number, quantity: number, total: number}[] = [
-    {name: 'Producto 1', price: 100, quantity: 2, total: 200},
-    {name: 'Producto 2', price: 150, quantity: 1, total: 150}
-  ];
+  cart: {name: string, price: number, quantity: number, total: number}[] = [];
   
   // Datos del cliente y orden
   customerName = '';
@@ -32,17 +35,17 @@ export class Sales {
   ];
   
   allProducts = [
-    { name: 'Pollo Entero', price: 250, category: 'Pollo Asado'},
-    { name: 'Medio Pollo', price: 130, category: 'Pollo Asado'},
-    { name: 'Cuarto de Pollo', price: 70, category: 'Pollo Asado'},
-    { name: 'Coca Cola', price: 25, category: 'Bebidas'},
-    { name: 'Pepsi', price: 25, category: 'Bebidas'},
-    { name: 'Agua Natural', price: 15, category: 'Bebidas'},
-    { name: 'Arroz', price: 30, category: 'Acompañamientos'},
-    { name: 'Papas Fritas', price: 35, category: 'Acompañamientos'},
-    { name: 'Ensalada', price: 40, category: 'Acompañamientos'},
-    { name: 'Flan', price: 45, category: 'Postres'},
-    { name: 'Helado', price: 35, category: 'Postres'},
+    { name: 'Pollo Entero', price: 25000, category: 'Pollo Asado'},
+    { name: 'Medio Pollo', price: 13000, category: 'Pollo Asado'},
+    { name: 'Cuarto de Pollo', price: 7000, category: 'Pollo Asado'},
+    { name: 'Coca Cola', price: 2500, category: 'Bebidas'},
+    { name: 'Pepsi', price: 2500, category: 'Bebidas'},
+    { name: 'Agua Natural', price: 1500, category: 'Bebidas'},
+    { name: 'Arroz', price: 3000, category: 'Acompañamientos'},
+    { name: 'Papas Fritas', price: 3500, category: 'Acompañamientos'},
+    { name: 'Ensalada', price: 4000, category: 'Acompañamientos'},
+    { name: 'Flan', price: 4500, category: 'Postres'},
+    { name: 'Helado', price: 3500, category: 'Postres'},
   ];
 
   get products() {
@@ -76,17 +79,17 @@ export class Sales {
   // Finalizar compra
   finalizePurchase() {
     if (!this.customerName.trim()) {
-      alert('Por favor ingrese el nombre del cliente');
+      Alert('Datos incompletos', 'Por favor ingrese el nombre del cliente', 'warning');
       return;
     }
 
     if (this.isDelivery && !this.deliveryAddress.trim()) {
-      alert('Por favor ingrese la dirección de entrega');
+      Alert('Datos incompletos', 'Por favor ingrese la dirección de entrega', 'warning');
       return;
     }
 
     if (this.cart.length === 0) {
-      alert('El carrito está vacío');
+      Alert('Carrito vacío', 'El carrito está vacío, por favor agregue productos', 'warning');
       return;
     }
 
@@ -95,15 +98,32 @@ export class Sales {
       isDelivery: this.isDelivery,
       deliveryAddress: this.isDelivery ? this.deliveryAddress : null,
       paymentMethod: this.paymentMethod,
-      items: this.cart,
-      total: this.orderTotal,
-      timestamp: new Date()
+      products: this.cart,
+      total: String(this.orderTotal),
+      timestamp: new Date(),
+      status: 'En preparación'
     };
 
-    console.log('Orden creada:', order);
-    alert(`Compra finalizada por $${this.orderTotal}\nCliente: ${this.customerName}\nMétodo de pago: ${this.paymentMethod}`);
+    this.ordersService.createOrder(order).subscribe({
+      next: (response) => {
+        ConfirmAlert({
+          title: 'Orden creada',
+          message: `La orden ha sido creada exitosamente.`,
+          icon: 'success',
+          btnAccept: 'Visualizar pedido',
+          btnCancel: 'Cerrar'
+        }).then((confirmed) => {
+          if (confirmed) {
+            console.log('Imprimiendo recibo para la orden:', response);
+          }
+        });
+      },
+      error: (error) => {
+        Alert('Error al crear la orden', 'Por favor intente nuevamente más tarde.', 'error');
+        console.error('Error al crear la orden:', error);
+      }
+    });
     
-    // Limpiar formulario después de la compra
     this.resetOrder();
   }
 
@@ -114,5 +134,38 @@ export class Sales {
     this.deliveryAddress = '';
     this.paymentMethod = 'efectivo';
     this.cart = [];
+  }
+
+  addCartProduct(product: {name: string, price: number}) {
+    const existingItem = this.cart.find(item => item.name === product.name);
+    if (existingItem) {
+      existingItem.quantity++;
+      existingItem.total = existingItem.price * existingItem.quantity;
+    } else {
+      this.cart.push({...product, quantity: 1, total: product.price});
+    }
+  }
+
+  increaseQuantity(item: {name: string, price: number, quantity: number, total: number}) {
+    item.quantity++;
+    item.total = item.price * item.quantity;
+  }
+
+  decreaseQuantity(item: {name: string, price: number, quantity: number, total: number}) {
+    if (item.quantity > 1) {
+      item.quantity--;
+      item.total = item.price * item.quantity;
+    }
+  }
+
+  removeFromCart(item: {name: string, price: number, quantity: number, total: number}) {
+    const index = this.cart.indexOf(item);
+    if (index > -1) {
+      this.cart.splice(index, 1);
+    }
+  }
+
+  formatPrice(price: number): string {
+    return formatPriceCustom(price);
   }
 }
