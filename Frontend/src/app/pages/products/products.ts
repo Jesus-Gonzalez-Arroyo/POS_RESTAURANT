@@ -256,7 +256,7 @@ export class Products implements OnInit {
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
           console.log('Producto agregado:', response);
-          this.loadProducts(); // Recargar la lista
+          this.loadProducts();
           this.resetForm();
           this.showModal = false;
           this.loading = false;
@@ -284,7 +284,7 @@ export class Products implements OnInit {
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
         next: (response) => {
           console.log('Producto actualizado:', response);
-          this.loadProducts(); // Recargar la lista
+          this.loadProducts();
           this.resetForm();
           this.showModal = false;
           this.loading = false;
