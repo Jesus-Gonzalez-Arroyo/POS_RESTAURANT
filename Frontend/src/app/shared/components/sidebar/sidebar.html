@@ -1,22 +1,41 @@
 <!-- Sidebar -->
 <div
-  class="fixed top-0 left-0 h-full w-64 bg-blue-400 text-white shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+  class="fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-2xl transform transition-all duration-300 ease-in-out z-50 border-r border-blue-500"
   [class.-translate-x-full]="!isOpen"
 >
-  <div class="p-4 text-lg font-bold border-b border-white-600">
-    Menú
+  <div class="p-6 border-b border-blue-500/30 bg-blue-500/20">
+    <div class="flex items-center space-x-3">
+      <div>
+        <h2 class="text-xl font-bold text-white">POS Restaurant</h2>
+        <p class="text-sm text-blue-200">Panel de Control</p>
+      </div>
+    </div>
   </div>
-  <ul class="p-4 space-y-4">
-    <li><a href="#" class="hover:text-gray-400">Inicio</a></li>
-    <li><a href="#" class="hover:text-gray-400">Servicios</a></li>
-    <li><a href="#" class="hover:text-gray-400">Acerca de</a></li>
-    <li><a href="#" class="hover:text-gray-400">Contacto</a></li>
-  </ul>
+
+  <nav class="flex-1 px-3 py-6">
+    <ul class="space-y-2">
+      <li *ngFor="let route of routes">
+        <a 
+          [href]="route.path" 
+          class="group flex items-center px-4 py-3 rounded-xl text-blue-100 hover:text-white hover:bg-blue-500/30 transition-all duration-200 ease-in-out relative overflow-hidden">
+          
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-white transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></div>
+          
+          <div class="flex-1">
+            <span class="font-medium text-sm">{{ route.name }}</span>
+          </div>
+          
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <i class="fas fa-chevron-right text-xs text-blue-200"></i>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </nav>
 </div>
 
-<!-- Overlay oscuro al fondo cuando está abierto -->
 <div
-  class="fixed inset-0 bg-opacity-50 z-40 transition-opacity"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-all duration-300"
   *ngIf="isOpen"
   (click)="toggleSidebar()"
 ></div>
