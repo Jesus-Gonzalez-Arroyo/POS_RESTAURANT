@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { Orders } from '../../core/services/orders/orders';
+import { Product, ProductsService } from '../../core/services/products/products.service';
 import { formatPriceCustom } from '../../shared/utils/formatPrice'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 
@@ -13,9 +14,7 @@ import { Alert, ConfirmAlert } from '../../shared/utils/alert';
   styleUrl: './sales.css',
   standalone: true
 })
-export class Sales {
-
-  constructor(private ordersService: Orders) {}
+export class Sales implements OnInit  {
 
   selectedCategory = 'Todos';
   categories = ['Todos', 'Pollo Asado', 'Bebidas', 'Acompañamientos', 'Postres'];
@@ -34,19 +33,27 @@ export class Sales {
     {value: 'transferencia', label: 'Transferencia'}
   ];
   
-  allProducts = [
-    { name: 'Pollo Entero', price: 25000, category: 'Pollo Asado'},
-    { name: 'Medio Pollo', price: 13000, category: 'Pollo Asado'},
-    { name: 'Cuarto de Pollo', price: 7000, category: 'Pollo Asado'},
-    { name: 'Coca Cola', price: 2500, category: 'Bebidas'},
-    { name: 'Pepsi', price: 2500, category: 'Bebidas'},
-    { name: 'Agua Natural', price: 1500, category: 'Bebidas'},
-    { name: 'Arroz', price: 3000, category: 'Acompañamientos'},
-    { name: 'Papas Fritas', price: 3500, category: 'Acompañamientos'},
-    { name: 'Ensalada', price: 4000, category: 'Acompañamientos'},
-    { name: 'Flan', price: 4500, category: 'Postres'},
-    { name: 'Helado', price: 3500, category: 'Postres'},
-  ];
+  allProducts = [] as Product[];
+
+  constructor(
+    private ordersService: Orders,
+    @Inject(ProductsService) private productsService: ProductsService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProducts();
+  }
+
+  loadProducts() {
+    this.productsService.getAllProducts().subscribe({
+      next: (products: Product[]) => {
+        this.allProducts = products;
+      },
+      error: (error: any) => {
+        console.error('Error loading products:', error);
+      }
+    });
+  }
 
   get products() {
     const searchTerm = this.searchTerm.toLowerCase();
@@ -73,7 +80,7 @@ export class Sales {
 
   // Calcular total de la compra
   get orderTotal(): number {
-    return this.cart.reduce((total, item) => total + item.total, 0);
+    return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
   }
 
   // Finalizar compra
@@ -93,12 +100,21 @@ export class Sales {
       return;
     }
 
+    // Limpiar las imágenes de los productos antes de crear la orden
+    const productsWithoutImages = this.cart.map(product => {
+      const { ...productWithoutImg } = product;
+      // Eliminar cualquier propiedad de imagen que pudiera existir
+      delete (productWithoutImg as any).img;
+      delete (productWithoutImg as any).image;
+      return productWithoutImg;
+    });
+
     const order = {
       customer: this.customerName,
       isDelivery: this.isDelivery,
       deliveryAddress: this.isDelivery ? this.deliveryAddress : null,
       paymentMethod: this.paymentMethod,
-      products: this.cart,
+      products: productsWithoutImages,
       total: String(this.orderTotal),
       timestamp: new Date(),
       status: 'En preparación'
@@ -167,5 +183,29 @@ export class Sales {
 
   formatPrice(price: number): string {
     return formatPriceCustom(price);
+  }
+
+  getImageUrl(imageBuffer: any): string {
+    if (!imageBuffer) {
+      return '';
+    }
+
+    if (imageBuffer.type === 'Buffer' && imageBuffer.data) {
+      const uint8Array = new Uint8Array(imageBuffer.data);
+      const blob = new Blob([uint8Array], { type: 'image/jpeg' });
+      return URL.createObjectURL(blob);
+    }
+    
+    if (Array.isArray(imageBuffer)) {
+      const uint8Array = new Uint8Array(imageBuffer);
+      const blob = new Blob([uint8Array], { type: 'image/jpeg' });
+      return URL.createObjectURL(blob);
+    }
+    
+    if (typeof imageBuffer === 'string') {
+      return imageBuffer;
+    }
+    
+    return '';
   }
 }

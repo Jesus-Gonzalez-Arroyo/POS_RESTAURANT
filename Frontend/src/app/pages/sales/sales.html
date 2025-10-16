@@ -26,10 +26,10 @@
         <div>
             <div class="grid grid-cols-4 gap-10 mt-4">
                 <div *ngFor="let product of products">
-                    <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg cursor-pointer">
+                    <div *ngIf="product.availability" class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg cursor-pointer">
                         <div class="h-30 rounded overflow-hidden">
                             <img class="object-fit w-full h-full"
-                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-FDJLtJWAGTJ3T1FHUJRSPm1W7EhQojv2ag&s"
+                                src="{{ getImageUrl(product.img) }}"
                                 alt="Product Image">
                         </div>
                         <div class="mt-5">

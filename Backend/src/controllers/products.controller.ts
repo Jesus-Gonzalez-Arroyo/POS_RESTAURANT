@@ -14,7 +14,8 @@ export const fetchAllProducts = async (req: Request, res: Response): Promise<voi
 export const addNewProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, price, earnings, category, availability } = req.body;
-    const newProduct = await insertProduct(name, price, earnings, category, availability);
+    const img = req.file ? req.file.buffer : undefined;
+    const newProduct = await insertProduct(name, price, earnings, category, availability, img);
     res.status(201).json({ message: 'Producto agregado con exito', product: newProduct });
   } catch (error) {
     console.error('Error agregando producto:', error);
@@ -26,7 +27,8 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     const { name, price, earnings, category, availability } = req.body;
-    const updatedProduct = await productUpdate(Number(id), name, price, earnings, category, availability);
+    const img = req.file ? req.file.buffer : undefined;
+    const updatedProduct = await productUpdate(Number(id), name, price, earnings, category, availability, img);
     res.json({ message: 'Producto actualizado con exito', updatedProduct });
   } catch (error) {
     console.error('Error actualizando producto:', error);
