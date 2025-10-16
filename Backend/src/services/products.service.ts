@@ -16,7 +16,7 @@ export const getProductByName = async (name: string): Promise<Product | null> =>
   return res.rows.length > 0 ? res.rows[0] : null
 }
 
-export const insertProduct = async (name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability']): Promise<any> => {
+export const insertProduct = async (name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], img?: Buffer): Promise<any> => {
   const existingProduct = await getProductByName(name)
   if (existingProduct) {
     throw new Error(`Ya existe un producto con el nombre "${name}"`)
@@ -29,19 +29,14 @@ export const insertProduct = async (name: Product['name'], price: Product['price
     throw new Error('Las ganancias no pueden ser negativas')
   }
 
-  const res = await pool.query('INSERT INTO products(name, price, earnings, category, availability) VALUES($1, $2, $3, $4, $5) RETURNING *', [name, price, earnings, category, availability])
+  const res = await pool.query('INSERT INTO products(name, price, earnings, category, availability, img) VALUES($1, $2, $3, $4, $5, $6) RETURNING *', [name, price, earnings, category, availability, img || null])
   return res.rows[0]
 }
 
-export const productUpdate = async (id: Product['id'], name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability']): Promise<any> => {
+export const productUpdate = async (id: Product['id'], name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], img?: Buffer): Promise<any> => {
   const existingProduct = await getProductById(id)
   if (!existingProduct) {
     throw new Error(`Producto con ID ${id} no encontrado`)
-  }
-
-  const productWithSameName = await getProductByName(name)
-  if (productWithSameName && productWithSameName.id !== id) {
-    throw new Error(`Ya existe otro producto con el nombre "${name}"`)
   }
 
   if (Number(price) < 0) {
@@ -51,8 +46,14 @@ export const productUpdate = async (id: Product['id'], name: Product['name'], pr
     throw new Error('Las ganancias no pueden ser negativas')
   }
 
-  const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5 WHERE id=$6 RETURNING *', [name, price, earnings, category, availability, id])
-  return res.rows[0]
+  // Si se proporciona una nueva imagen, actualizarla; si no, mantener la existente
+  if (img !== undefined) {
+    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5, img=$6 WHERE id=$7 RETURNING *', [name, price, earnings, category, availability, img, id])
+    return res.rows[0]
+  } else {
+    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5 WHERE id=$6 RETURNING *', [name, price, earnings, category, availability, id])
+    return res.rows[0]
+  }
 }
 
 export const productDelete = async (id: number): Promise<any> => {

@@ -25,8 +25,13 @@ export class Products implements OnInit {
     price: null as number | null,
     earnings: null as number | null,
     category: '',
-    availability: true
-  };  
+    availability: true,
+    img: null as File | null
+  };
+  
+  // Propiedades para el manejo de imágenes
+  imagePreview: string | null = null;
+  selectedFile: File | null = null;
   
   // Propiedades de paginación
   currentPage = 1;
@@ -168,8 +173,16 @@ export class Products implements OnInit {
         price: existingProduct.price,
         earnings: existingProduct.earnings,
         category: existingProduct.category,
-        availability: existingProduct.availability
+        availability: existingProduct.availability,
+        img: null // No incluimos la imagen existente en el formulario
       };
+      
+      // Si existe una imagen, mostrar su preview
+      if (existingProduct.img) {
+        this.imagePreview = this.getImageUrl(existingProduct.img);
+      } else {
+        this.imagePreview = null;
+      }
       
       this.isEditMode = true;
       this.editingProductId = product.id;
@@ -244,15 +257,20 @@ export class Products implements OnInit {
 
   addProduct() {
     if (this.isValidProduct()) {
+      console.log('Agregando producto...');
+      console.log('selectedFile:', this.selectedFile);
+      console.log('newProduct.img:', this.newProduct.img);
       this.loading = true;
       const productData: CreateProductDto = {
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
-        availability: this.newProduct.availability
+        availability: this.newProduct.availability,
+        img: this.selectedFile || undefined
       };
       
+      console.log('Datos del producto a enviar:', productData);
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
           console.log('Producto agregado:', response);
@@ -278,7 +296,8 @@ export class Products implements OnInit {
         price: Number(this.newProduct.price),
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
-        availability: this.newProduct.availability
+        availability: this.newProduct.availability,
+        img: this.selectedFile || undefined
       };
       
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
@@ -320,9 +339,68 @@ export class Products implements OnInit {
       price: null as number | null,
       earnings: null as number | null,
       category: '',
-      availability: true
+      availability: true,
+      img: null as File | null
     };
     this.isEditMode = false;
     this.editingProductId = null;
+    this.imagePreview = null;
+    this.selectedFile = null;
+  }
+
+  // Métodos para el manejo de imágenes
+  onImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.newProduct.img = file;
+      
+      // Crear vista previa
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('No se seleccionó ningún archivo');
+    }
+  }
+
+  removeImage() {
+    this.selectedFile = null;
+    this.newProduct.img = null;
+    this.imagePreview = null;
+    // Limpiar el input de archivo
+    const fileInput = document.getElementById('productImage') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  getImageUrl(imageBuffer: any): string {
+    if (!imageBuffer) {
+      return '';
+    }
+    
+    // Si imageBuffer es un objeto con type y data (como viene de PostgreSQL bytea)
+    if (imageBuffer.type === 'Buffer' && imageBuffer.data) {
+      const uint8Array = new Uint8Array(imageBuffer.data);
+      const blob = new Blob([uint8Array], { type: 'image/jpeg' });
+      return URL.createObjectURL(blob);
+    }
+    
+    // Si es un array de bytes directamente
+    if (Array.isArray(imageBuffer)) {
+      const uint8Array = new Uint8Array(imageBuffer);
+      const blob = new Blob([uint8Array], { type: 'image/jpeg' });
+      return URL.createObjectURL(blob);
+    }
+    
+    // Si ya es una URL o base64
+    if (typeof imageBuffer === 'string') {
+      return imageBuffer;
+    }
+    
+    return '';
   }
 }

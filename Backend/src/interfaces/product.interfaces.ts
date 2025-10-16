@@ -5,4 +5,5 @@ export interface Product {
     earnings: string;
     category: string;
     availability: string;
+    img?: Buffer | null;
 }
