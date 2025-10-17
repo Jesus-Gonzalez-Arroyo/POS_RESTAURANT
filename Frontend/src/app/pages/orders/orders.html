@@ -12,10 +12,10 @@
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900">Orden #{{ order.id }}</h3>
                         <p class="text-sm text-gray-600">{{ order.customer }}</p>
-                        <p class="text-xs text-gray-500">{{ formatTime(order.timestamp) }}</p>
+                        <!-- <p class="text-xs text-gray-500">{{ formatTime(order.time) }}</p> -->
                     </div>
                     <div class="text-right">
-                        <p class="text-lg font-bold text-green-600">${{ order.total }}</p>
+                        <p class="text-lg font-bold text-green-600">${{ formatPrice(order.total) }}</p>
                         <span [class]="'inline-flex px-2 py-1 text-xs font-semibold rounded-full border ' + getStatusColor(order.status)">
                             {{ order.status }}
                         </span>
@@ -23,7 +23,7 @@
                 </div>
 
                 <!-- Información de entrega -->
-                <div class="mb-4" *ngIf="order.isDelivery">
+                <div class="mb-4" *ngIf="order.isdelivery">
                     <div class="flex items-center text-sm text-blue-600 mb-2">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
@@ -32,7 +32,7 @@
                         Delivery
                     </div>
                     <p class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        {{ order.deliveryAddress }}
+                        {{ order.deliveryaddress }}
                     </p>
                 </div>
 
@@ -40,10 +40,10 @@
                 <div class="mb-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">Productos:</h4>
                     <div class="space-y-1">
-                        <div *ngFor="let item of order.items" 
+                        <div *ngFor="let item of order.products" 
                              class="flex justify-between text-xs text-gray-600">
                             <span>{{ item.quantity }}x {{ item.name }}</span>
-                            <span>${{ item.price * item.quantity }}</span>
+                            <span>${{ formatPrice(`${item.price * item.quantity}`) }}</span>
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                 <!-- Método de pago -->
                 <div class="mb-4">
                     <span class="text-xs text-gray-500">Pago: </span>
-                    <span class="text-xs font-medium text-gray-700">{{ order.paymentMethod }}</span>
+                    <span class="text-xs font-medium text-gray-700">{{ order.paymentmethod }}</span>
                 </div>
 
                 <!-- Selector de estado -->
@@ -80,7 +80,7 @@
                         </button>
                         <button 
                             (click)="updateOrderStatus(order.id, 'En delivery')"
-                            *ngIf="order.isDelivery"
+                            *ngIf="order.isdelivery"
                             class="flex-1 bg-blue-500 text-white text-xs py-2 px-3 rounded hover:bg-blue-600 transition-colors">
                             A Delivery
                         </button>

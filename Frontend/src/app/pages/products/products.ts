@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
 import { ProductsService, Product, CreateProductDto } from '../../core/services/products/products.service';
+import { Alert } from '../../shared/utils/alert';
 
 @Component({
   selector: 'app-products',
@@ -59,9 +60,8 @@ export class Products implements OnInit {
         this.loading = false;
       },
       error: (error) => {
+        Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
         console.error('Error cargando productos:', error);
-        this.error = 'Error al cargar los productos';
-        this.loading = false;
       }
     });
   }
@@ -257,9 +257,6 @@ export class Products implements OnInit {
 
   addProduct() {
     if (this.isValidProduct()) {
-      console.log('Agregando producto...');
-      console.log('selectedFile:', this.selectedFile);
-      console.log('newProduct.img:', this.newProduct.img);
       this.loading = true;
       const productData: CreateProductDto = {
         name: this.newProduct.name,
@@ -269,20 +266,17 @@ export class Products implements OnInit {
         availability: this.newProduct.availability,
         img: this.selectedFile || undefined
       };
-      
-      console.log('Datos del producto a enviar:', productData);
+
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
-          console.log('Producto agregado:', response);
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
           this.loading = false;
         },
         error: (error) => {
+          Alert('Error', 'No se pudo agregar el producto. Intente nuevamente más tarde.', 'error');
           console.error('Error agregando producto:', error);
-          this.error = 'Error al agregar el producto';
-          this.loading = false;
         }
       });
     }
@@ -302,16 +296,14 @@ export class Products implements OnInit {
       
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
         next: (response) => {
-          console.log('Producto actualizado:', response);
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
           this.loading = false;
         },
         error: (error) => {
+          Alert('Error', 'No se pudo actualizar el producto. Intente nuevamente más tarde.', 'error');
           console.error('Error actualizando producto:', error);
-          this.error = 'Error al actualizar el producto';
-          this.loading = false;
         }
       });
     }

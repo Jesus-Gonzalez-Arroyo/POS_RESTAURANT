@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { Orders } from '../../core/services/orders/orders';
 import { Product, ProductsService } from '../../core/services/products/products.service';
@@ -37,6 +38,7 @@ export class Sales implements OnInit  {
 
   constructor(
     private ordersService: Orders,
+    private router: Router,
     @Inject(ProductsService) private productsService: ProductsService
   ) {}
 
@@ -50,6 +52,7 @@ export class Sales implements OnInit  {
         this.allProducts = products;
       },
       error: (error: any) => {
+        Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
         console.error('Error loading products:', error);
       }
     });
@@ -111,12 +114,12 @@ export class Sales implements OnInit  {
 
     const order = {
       customer: this.customerName,
-      isDelivery: this.isDelivery,
-      deliveryAddress: this.isDelivery ? this.deliveryAddress : null,
-      paymentMethod: this.paymentMethod,
+      isdelivery: this.isDelivery,
+      deliveryaddress: this.isDelivery ? this.deliveryAddress : null,
+      paymentmethod: this.paymentMethod,
       products: productsWithoutImages,
       total: String(this.orderTotal),
-      timestamp: new Date(),
+      time: new Date(),
       status: 'En preparación'
     };
 
@@ -130,7 +133,7 @@ export class Sales implements OnInit  {
           btnCancel: 'Cerrar'
         }).then((confirmed) => {
           if (confirmed) {
-            console.log('Imprimiendo recibo para la orden:', response);
+            this.router.navigate(['/orders']);
           }
         });
       },

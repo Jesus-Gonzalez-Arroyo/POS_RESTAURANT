@@ -1,6 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import { Orders as OrdersService } from '../../core/services/orders/orders'
+import { Alert, ConfirmAlert } from '../../shared/utils/alert';
+import { formatPriceCustom } from '../../shared/utils/formatPrice';
+import { F } from '@angular/cdk/keycodes';
+
+export interface Order {
+  id: number;
+  customer: string;
+  total: string;
+  isdelivery: boolean;
+  deliveryaddress: string | null;
+  paymentmethod: string;
+  products: Array<{ name: string; price: number; quantity: number }>;
+  status: string;
+  time: Date;
+}
 
 @Component({
   selector: 'app-orders',
@@ -8,70 +25,27 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './orders.html',
   styleUrl: './orders.css'
 })
-export class Orders {
-  orderList = [
-    { 
-      id: 1, 
-      customer: 'Juan Perez', 
-      total: 300, 
-      status: 'En preparación',
-      items: [
-        { name: 'Pollo Entero', quantity: 1, price: 250 },
-        { name: 'Coca Cola', quantity: 2, price: 25 }
-      ],
-      timestamp: new Date(2025, 9, 7, 10, 30),
-      isDelivery: false,
-      deliveryAddress: null,
-      paymentMethod: 'Efectivo'
-    },
-    { 
-      id: 2, 
-      customer: 'María González', 
-      total: 180, 
-      status: 'En preparación',
-      items: [
-        { name: 'Medio Pollo', quantity: 1, price: 130 },
-        { name: 'Arroz', quantity: 1, price: 30 },
-        { name: 'Pepsi', quantity: 1, price: 25 }
-      ],
-      timestamp: new Date(2025, 9, 7, 11, 15),
-      isDelivery: true,
-      deliveryAddress: 'Av. Principal 123, Edificio Torres',
-      paymentMethod: 'Tarjeta'
-    },
-    { 
-      id: 3, 
-      customer: 'Carlos Sanchez', 
-      total: 450, 
-      status: 'Completado',
-      items: [
-        { name: 'Pollo Entero', quantity: 2, price: 250 },
-        { name: 'Papas Fritas', quantity: 2, price: 35 },
-        { name: 'Agua Natural', quantity: 3, price: 15 }
-      ],
-      timestamp: new Date(2025, 9, 7, 9, 45),
-      isDelivery: false,
-      deliveryAddress: null,
-      paymentMethod: 'Transferencia'
-    },
-    { 
-      id: 4, 
-      customer: 'Ana Torres', 
-      total: 215, 
-      status: 'En delivery',
-      items: [
-        { name: 'Cuarto de Pollo', quantity: 2, price: 70 },
-        { name: 'Ensalada', quantity: 1, price: 40 },
-        { name: 'Flan', quantity: 1, price: 45 }
-      ],
-      timestamp: new Date(2025, 9, 7, 12, 0),
-      isDelivery: true,
-      deliveryAddress: 'Calle Secundaria 456, Casa Azul',
-      paymentMethod: 'Efectivo'
-    },
-  ];
-
+export class Orders implements OnInit {
+  orderList: Order[] = [];
   orderStatuses = ['En preparación', 'Completado', 'En delivery', 'Cancelado'];
+
+  constructor(private ordersService: OrdersService) {}
+
+  ngOnInit(): void {
+    this.getAllOrders();
+  }
+
+  getAllOrders() {
+    this.ordersService.getAllOrders().subscribe({
+      next: (orders) => {
+        this.orderList = orders;
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudieron cargar las órdenes. Intente nuevamente más tarde.', 'error');
+        console.error('Error loading orders:', error);
+      }
+    });
+  }
 
   updateOrderStatus(orderId: number, newStatus: string) {
     const order = this.orderList.find(o => o.id === orderId);
@@ -84,11 +58,23 @@ export class Orders {
   cancelOrder(orderId: number) {
     const order = this.orderList.find(o => o.id === orderId);
     if (order && order.status !== 'Completado' && order.status !== 'Cancelado') {
-      const confirmCancel = confirm(`¿Está seguro de que desea cancelar la orden #${orderId} de ${order.customer}?`);
-      if (confirmCancel) {
-        order.status = 'Cancelado';
-        console.log(`Orden ${orderId} cancelada`);
-      }
+      ConfirmAlert({
+        title: 'Cancelar orden',
+        message: `¿Está seguro de que desea cancelar la orden #${orderId} de ${order.customer}?`,
+        icon: 'warning',
+        btnAccept: 'Sí, cancelar',
+        btnCancel: 'No, mantener'
+      }).then((confirmed) => {
+        if (confirmed) {
+          order.status = 'Cancelado';
+          this.ordersService.deleteOrder(orderId).subscribe({
+            next: () => {
+              Alert('Orden cancelada', `La orden #${orderId} ha sido cancelada.`, 'success');
+              this.getAllOrders()
+            }
+          });
+        }
+      });
     } else if (order && (order.status === 'Completado' || order.status === 'Cancelado')) {
       alert('No se puede cancelar una orden que ya está completada o cancelada.');
     }
@@ -114,5 +100,9 @@ export class Orders {
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  }
+
+  formatPrice(price: string): string {
+    return formatPriceCustom(parseFloat(price));
   }
 }

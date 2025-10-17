@@ -6,12 +6,12 @@ export interface Order {
   id: number;
   customer: string;
   total: string;
-  isDelivery: boolean;
-  deliveryAddress: string | null;
-  paymentMethod: string;
+  isdelivery: boolean;
+  deliveryaddress: string | null;
+  paymentmethod: string;
   products: Array<{ name: string; price: number; quantity: number }>;
   status: string;
-  timestamp: Date;
+  time: Date;
 }
 
 @Injectable({
@@ -28,5 +28,9 @@ export class Orders {
 
   createOrder(order: Omit<Order, 'id' | 'status'>): Observable<any> {
     return this.http.post<any>(this.baseUrl, order);
+  }
+
+  deleteOrder(orderId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/${orderId}`);
   }
 }
