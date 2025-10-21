@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
 import { ProductsService, Product, CreateProductDto } from '../../core/services/products/products.service';
-import { Alert } from '../../shared/utils/alert';
+import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 
 @Component({
   selector: 'app-products',
@@ -152,6 +152,20 @@ export class Products implements OnInit {
 
   deleteProduct(id: number) {
     this.loading = true;
+    ConfirmAlert({
+      title: 'Eliminar Producto',
+      message: '¿Está seguro de que desea eliminar este producto?',
+      icon: 'warning',
+      btnAccept: 'Sí, eliminar',
+      btnCancel: 'Cancelar'
+    }).then((result) => {
+      if (result) {
+        this.confirmDeleteProduct(id);
+      }
+    });
+  }
+
+  confirmDeleteProduct(id: number) {
     this.productsService.deleteProduct(id).subscribe({
       next: () => {
         this.allProducts = this.allProducts.filter(product => product.id !== id);

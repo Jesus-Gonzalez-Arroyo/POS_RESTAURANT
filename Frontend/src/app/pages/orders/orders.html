@@ -95,6 +95,9 @@
                     </button>
                 </div>
             </div>
+            <div *ngIf="orderList.length === 0">
+                <p>No hay pedidos activos</p>
+            </div>
         </div>
     </div>
 </div>
