@@ -7,6 +7,7 @@ import { AuthGuard } from './core/guards/auth/auth-roles-guard';
 import { Layout } from './shared/components/layout/layout';
 import { Products } from './pages/products/products';
 import { Orders } from './pages/orders/orders';
+import { Accounting } from './pages/accounting/accounting';
 
 export const routes: Routes = [
     { path: '', component: Login},
@@ -14,6 +15,7 @@ export const routes: Routes = [
         { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard], data: { roles: ["1"] } },
         { path: 'sales', component: Sales },
         { path: 'products', component: Products },
-        { path: 'orders', component: Orders }
+        { path: 'orders', component: Orders },
+        { path: 'accounting', component: Accounting }
     ]}
 ];

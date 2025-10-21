@@ -10,7 +10,6 @@ export const getSalesAll = async (req: Request, res: Response) => {
     }
 }
 
-
 export const saleCreate = async (req: Request, res: Response) => {
     try {
         const sale = req.body;

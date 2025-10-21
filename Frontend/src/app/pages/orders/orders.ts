@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Orders as OrdersService } from '../../core/services/orders/orders'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
-import { F } from '@angular/cdk/keycodes';
+import { Sales } from '../../core/services/sales/sales';
 
 export interface Order {
   id: number;
@@ -29,7 +29,7 @@ export class Orders implements OnInit {
   orderList: Order[] = [];
   orderStatuses = ['En preparación', 'Completado', 'En delivery', 'Cancelado'];
 
-  constructor(private ordersService: OrdersService) {}
+  constructor(private ordersService: OrdersService, private salesService: Sales) { }
 
   ngOnInit(): void {
     this.getAllOrders();
@@ -47,11 +47,40 @@ export class Orders implements OnInit {
     });
   }
 
+  deleteOrder(orderId: number, showAlert: boolean = true) {
+    this.ordersService.deleteOrder(orderId).subscribe({
+      next: () => {
+        if(showAlert) {
+          Alert('Orden cancelada', `La orden #${orderId} ha sido cancelada.`, 'success');
+        }
+        this.getAllOrders()
+      }
+    });
+  }
+
   updateOrderStatus(orderId: number, newStatus: string) {
     const order = this.orderList.find(o => o.id === orderId);
-    if (order) {
-      order.status = newStatus;
-      console.log(`Orden ${orderId} actualizada a: ${newStatus}`);
+    if (!order) return
+
+    if (newStatus === this.orderStatuses[1]) {
+      const orderCompleted = {
+        customer: order.customer,
+        total: parseInt(order.total),
+        paymentmethod: order.paymentmethod,
+        products: order.products,
+        time: new Date(),
+        ganancias: 0
+      }
+
+      this.salesService.createSale(orderCompleted).subscribe({
+        next: () => {
+          Alert('Completado', 'Venta registrada con exito', 'success')
+          this.deleteOrder(orderId, false)
+        },
+        error: (error) => {
+          Alert('Error', 'No se pudo registrar la venta. Intente nuevamente.', 'error');
+        }
+      })
     }
   }
 
@@ -67,16 +96,11 @@ export class Orders implements OnInit {
       }).then((confirmed) => {
         if (confirmed) {
           order.status = 'Cancelado';
-          this.ordersService.deleteOrder(orderId).subscribe({
-            next: () => {
-              Alert('Orden cancelada', `La orden #${orderId} ha sido cancelada.`, 'success');
-              this.getAllOrders()
-            }
-          });
+          this.deleteOrder(orderId)
         }
       });
     } else if (order && (order.status === 'Completado' || order.status === 'Cancelado')) {
-      alert('No se puede cancelar una orden que ya está completada o cancelada.');
+      Alert('Accion no permitidad', 'No se puede cancelar una orden que ya está completada o cancelada.', 'error')
     }
   }
 
@@ -96,9 +120,9 @@ export class Orders implements OnInit {
   }
 
   formatTime(date: Date): string {
-    return date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 

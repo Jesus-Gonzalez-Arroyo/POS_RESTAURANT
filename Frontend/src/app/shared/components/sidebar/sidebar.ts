@@ -18,6 +18,7 @@ export class Sidebar implements OnInit, OnDestroy {
     { name: 'Ventas', path: '/sales', icon: 'fa-solid fa-cash-register' },
     { name: 'Órdenes', path: '/orders', icon: 'fa-solid fa-receipt' },
     { name: 'Productos', path: '/products', icon: 'fa-solid fa-box-open' },
+    { name: 'Contabilidad', path: '/accounting', icon: 'fa-solid fa-box-open' }
   ];
 
   constructor(private sidebarService: SidebarService) {}

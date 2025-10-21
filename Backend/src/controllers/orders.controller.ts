@@ -1,4 +1,4 @@
-import {deleteOrderById, getAllOrders, saveOrder} from '../services/orders.service'
+import { deleteOrderById, getAllOrders, saveOrder } from '../services/orders.service'
 import { Request, Response } from 'express'
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {

@@ -10,7 +10,7 @@ export const createSale = async (sale: SaleCreate) => {
     const { customer, total, paymentmethod, products, time, ganancias } = sale;
     const res = await pool.query(
         'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [customer, total, paymentmethod, products, time, ganancias]
+        [customer, total, paymentmethod, JSON.stringify(products), time, ganancias]
     );
     return res.rows[0];
 }

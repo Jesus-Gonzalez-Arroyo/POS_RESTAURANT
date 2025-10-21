@@ -1,16 +1,5 @@
+import { Order } from '../interfaces/orders.interface'
 import pool from "../config/connectDB";
-
-interface Order {
-    id: number;
-    customer: string;
-    total: string;
-    isDelivery: boolean;
-    deliveryAddress: string | null;
-    paymentMethod: string;
-    products: Array<{ name: string; price: string; quantity: number }>;
-    status: string;
-    timestamp: Date;
-}
 
 export const getAllOrders = async (): Promise<any[]> => {
     const res = await pool.query("SELECT * FROM orders");
@@ -23,10 +12,10 @@ export const saveOrder = async (orderData: Order): Promise<any> => {
         orderData.total,
         orderData.status,
         JSON.stringify(orderData.products),
-        orderData.isDelivery,
-        orderData.deliveryAddress,
-        orderData.paymentMethod,
-        orderData.timestamp
+        orderData.isdelivery,
+        orderData.deliveryaddress,
+        orderData.paymentmethod,
+        orderData.time
     ]);
 
     return res.rows[0];
