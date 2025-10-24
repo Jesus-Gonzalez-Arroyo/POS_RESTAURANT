@@ -1,1 +1,187 @@
-<p>accounting works!</p>
+<div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+    <!-- Header con título y resumen -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-gray-500 text-xl font-semibold">Ventas realizadas</h2>
+            <p class="text-gray-400 text-sm mt-1">Registro detallado de todas las ventas</p>
+        </div>
+        <div class="flex gap-4">
+            <!-- Filtros y controles pueden ir aquí -->
+            <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2">
+                <i class="fas fa-file-export"></i>
+                Exportar
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de ventas -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cliente
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Productos
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Método de Pago
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Venta
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ganancias
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let sale of sales" class="hover:bg-gray-50 transition-colors">
+                    <!-- Cliente -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-medium text-lg">{{ getInitial(sale.customer) }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ sale.customer }}</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Productos -->
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">{{ getFirstProduct(sale.products).name }}</span>
+                                <span class="text-gray-500">x{{ getFirstProduct(sale.products).quantity }}</span>
+                                <!-- <span *ngIf="sale.products.length > 1" class="text-xs text-gray-500">
+                                    (y {{ sale.products.length - 1 }} más)
+                                </span> -->
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Método de Pago -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full"
+                            [ngClass]="{
+                                'bg-green-100 text-green-800': sale.paymentmethod === 'efectivo',
+                                'bg-blue-100 text-blue-800': sale.paymentmethod === 'transferencia',
+                                'bg-purple-100 text-purple-800': sale.paymentmethod === 'tarjeta'
+                            }">
+                            {{ sale.paymentmethod | titlecase }}
+                        </span>
+                    </td>
+
+                    <!-- Total -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">
+                            ${{ formatPrice(sale.total) }}
+                        </div>
+                    </td>
+
+                    <!-- Ganancias -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-green-600">
+                            +${{ formatPrice(sale.ganancias) }}
+                        </div>
+                    </td>
+
+                    <!-- Fecha -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">
+                            {{ sale.time | date:'dd/MM/yyyy HH:mm' }}
+                        </div>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-900" title="Imprimir">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Estado de carga -->
+                <tr *ngIf="loading">
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        Cargando ventas...
+                    </td>
+                </tr>
+
+                <!-- Sin resultados -->
+                <tr *ngIf="!loading && !error && sales.length === 0">
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        No se encontraron ventas
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer con paginación -->
+    <div class="py-3 flex items-center justify-between border-t border-gray-200 mt-4">
+        <div class="flex-1 flex justify-between sm:hidden">
+            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Anterior
+            </button>
+            <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Siguiente
+            </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Mostrando 
+                    <span class="font-medium">{{ ((currentPage - 1) * itemsPerPage) + 1 }}</span> 
+                    a 
+                    <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> 
+                    de 
+                    <span class="font-medium">{{ totalItems }}</span> resultados
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button 
+                        (click)="previousPage()"
+                        [disabled]="currentPage === 1"
+                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Anterior</span>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <button 
+                        *ngFor="let page of pages"
+                        (click)="goToPage(page)"
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium"
+                        [class.bg-blue-50]="currentPage === page"
+                        [class.text-blue-600]="currentPage === page"
+                        [class.bg-white]="currentPage !== page"
+                        [class.text-gray-700]="currentPage !== page"
+                        [class.hover:bg-gray-50]="currentPage !== page">
+                        {{ page }}
+                    </button>
+                    
+                    <button 
+                        (click)="nextPage()"
+                        [disabled]="currentPage === totalPages"
+                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Siguiente</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
