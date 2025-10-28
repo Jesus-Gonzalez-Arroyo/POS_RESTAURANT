@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Sales, Sale } from '../../core/services/sales/sales';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
+import { generateSaleReceipt, printDocument } from '../../shared/utils/printTemplates';
 
 @Component({
   selector: 'app-accounting',
@@ -264,5 +265,12 @@ export class Accounting implements OnInit {
   exportSales() {
     // Implementar lógica de exportación aquí
     console.log('Exportando ventas...');
+  }
+
+  // Imprimir factura
+  printSale(sale: Sale) {
+    console.log('Imprimiendo venta:', sale);
+    const receiptHtml = generateSaleReceipt(sale);
+    printDocument(receiptHtml);
   }
 }
