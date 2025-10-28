@@ -65,11 +65,11 @@ export class Orders implements OnInit {
     if (newStatus === this.orderStatuses[1]) {
       const orderCompleted = {
         customer: order.customer,
-        total: parseInt(order.total),
+        total: order.total,
         paymentmethod: order.paymentmethod,
         products: order.products,
         time: new Date(),
-        ganancias: 0
+        ganancias: '0'
       }
 
       this.salesService.createSale(orderCompleted).subscribe({
