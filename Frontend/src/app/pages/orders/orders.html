@@ -1,6 +1,7 @@
 <div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
     <div>
-        <h2 class="text-gray-500 text-xl">Pedidos activos</h2>
+        <h2 class="text-gray-700 text-2xl font-bold">Pedidos activos</h2>
+        <p class="text-gray-500 text-sm mt-1">Administra los pedidos que están actualmente en proceso.</p>
     </div>
     <div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
@@ -95,8 +96,28 @@
                     </button>
                 </div>
             </div>
-            <div *ngIf="orderList.length === 0">
-                <p>No hay pedidos activos</p>
+        </div>
+        
+        <!-- Estado sin pedidos -->
+        <div *ngIf="orderList.length === 0" class="flex flex-col items-center justify-center py-20">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full p-8 mb-6 shadow-lg">
+                <svg class="w-24 h-24 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">No hay pedidos activos</h3>
+            <p class="text-gray-500 text-center max-w-md mb-6">
+                Actualmente no tienes pedidos en proceso. Los nuevos pedidos aparecerán aquí automáticamente.
+            </p>
+            <div class="flex items-center gap-2 text-sm text-gray-400">
+                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                    </path>
+                </svg>
+                <span>Esperando nuevos pedidos...</span>
             </div>
         </div>
     </div>
