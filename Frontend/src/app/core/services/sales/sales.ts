@@ -4,11 +4,11 @@ import { Observable } from 'rxjs';
 
 export interface Sale {
   customer: string
-  total: number
+  total: string
   paymentmethod: string
   products: Array<{ name: string; price: number; quantity: number }>
   time: Date
-  ganancias: number
+  ganancias: string
 }
 
 @Injectable({
