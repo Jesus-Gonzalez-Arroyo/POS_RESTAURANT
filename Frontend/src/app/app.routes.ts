@@ -8,6 +8,8 @@ import { Layout } from './shared/components/layout/layout';
 import { Products } from './pages/products/products';
 import { Orders } from './pages/orders/orders';
 import { Accounting } from './pages/accounting/accounting';
+import { Bills } from './pages/bills/bills';
+import { Box } from './pages/box/box';
 
 export const routes: Routes = [
     { path: '', component: Login},
@@ -16,6 +18,8 @@ export const routes: Routes = [
         { path: 'sales', component: Sales },
         { path: 'products', component: Products },
         { path: 'orders', component: Orders },
-        { path: 'accounting', component: Accounting }
+        { path: 'accounting', component: Accounting },
+        { path: 'expenses', component: Bills },
+        { path: 'cash-register', component: Box}
     ]}
 ];
