@@ -13,34 +13,22 @@ import { generateSaleReceipt, printDocument } from '../../shared/utils/printTemp
   standalone: true
 })
 export class Accounting implements OnInit {
-  // Hacer Math disponible en el template
   protected Math = Math;
   
-  // Lista de ventas
   sales: Sale[] = [];
   filteredSales: Sale[] = [];
-  
-  // Variables de paginación
   currentPage = 1;
   itemsPerPage = 10;
   totalItems = 0;
-
-  // Variables de carga y error
   loading = false;
   error: string | null = null;
-
-  // Variables de filtros
   searchTerm: string = '';
   selectedPaymentMethod: string = '';
   startDate: string = '';
   endDate: string = '';
   sortBy: string = 'date';
   sortOrder: 'asc' | 'desc' = 'desc';
-
-  // Variable para mostrar detalles de productos
   selectedSaleProducts: any[] | null = null;
-
-  // Métodos de pago disponibles
   paymentMethods = ['efectivo', 'transferencia', 'tarjeta'];
 
   constructor(private salesService: Sales) {}
@@ -123,7 +111,7 @@ export class Accounting implements OnInit {
 
     this.filteredSales = result;
     this.totalItems = result.length;
-    this.currentPage = 1; // Resetear a la primera página
+    this.currentPage = 1;
   }
 
   // Limpiar filtros
@@ -208,7 +196,7 @@ export class Accounting implements OnInit {
 
   // Cambiar cantidad de elementos por página
   changeItemsPerPage() {
-    this.currentPage = 1; // Resetear a la primera página
+    this.currentPage = 1;
   }
 
   // Formatear precio
@@ -261,15 +249,8 @@ export class Accounting implements OnInit {
     return this.filteredSales.length > 0 ? this.totalSalesAmount / this.filteredSales.length : 0;
   }
 
-  // Exportar ventas
-  exportSales() {
-    // Implementar lógica de exportación aquí
-    console.log('Exportando ventas...');
-  }
-
   // Imprimir factura
   printSale(sale: Sale) {
-    console.log('Imprimiendo venta:', sale);
     const receiptHtml = generateSaleReceipt(sale);
     printDocument(receiptHtml);
   }
