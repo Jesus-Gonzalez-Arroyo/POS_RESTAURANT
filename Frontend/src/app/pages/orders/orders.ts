@@ -6,6 +6,7 @@ import { Orders as OrdersService } from '../../core/services/orders/orders'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { Sales } from '../../core/services/sales/sales';
+import { BoxRegister } from '../../core/services/box/box-register';
 
 export interface Order {
   id: number;
@@ -29,7 +30,11 @@ export class Orders implements OnInit {
   orderList: Order[] = [];
   orderStatuses = ['En preparación', 'Completado', 'En delivery', 'Cancelado'];
 
-  constructor(private ordersService: OrdersService, private salesService: Sales) { }
+  constructor(
+    private ordersService: OrdersService, 
+    private salesService: Sales,
+    private boxService: BoxRegister
+  ) { }
 
   ngOnInit(): void {
     this.getAllOrders();
@@ -74,8 +79,16 @@ export class Orders implements OnInit {
 
       this.salesService.createSale(orderCompleted).subscribe({
         next: () => {
-          Alert('Completado', 'Venta registrada con exito', 'success')
-          this.deleteOrder(orderId, false)
+          const saleAmount = parseInt(orderCompleted.total);
+          const registeredInBox = this.boxService.registerSale(saleAmount, orderCompleted.paymentmethod);
+          
+          if (registeredInBox) {
+            Alert('Completado', 'Venta registrada con éxito', 'success');
+          } else {
+            Alert('Completado', 'Venta registrada con éxito. No hay caja abierta.', 'warning');
+          }
+          
+          this.deleteOrder(orderId, false);
         },
         error: (error) => {
           Alert('Error', 'No se pudo registrar la venta. Intente nuevamente.', 'error');
