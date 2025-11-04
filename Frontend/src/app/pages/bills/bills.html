@@ -1,1 +1,372 @@
-<p>bills works!</p>
+<div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-gray-700 text-2xl font-bold">Gestión de Gastos</h2>
+                <p class="text-gray-500 text-sm mt-1">Control y seguimiento de gastos operativos</p>
+            </div>
+            <button 
+                (click)="openAddModal()"
+                class="px-5 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Registrar Gasto
+            </button>
+        </div>
+
+        <!-- Tarjetas de estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-medium opacity-90">Total Gastos</div>
+                    <svg class="w-8 h-8 opacity-80" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <p class="text-3xl font-bold">{{ formatPrice(totalExpenses) }}</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-medium opacity-90">Servicios</div>
+                    <div class="w-8 h-8 opacity-80"></div>
+                </div>
+                <p class="text-3xl font-bold">{{ formatPrice(expensesByCategory.servicios) }}</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-medium opacity-90">Empleados</div>
+                    <div class="w-8 h-8 opacity-80"></div>
+                </div>
+                <p class="text-3xl font-bold">{{ formatPrice(expensesByCategory.empleados) }}</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-medium opacity-90">Proveedores</div>
+                    <div class="w-8 h-8 opacity-80"></div>
+                </div>
+                <p class="text-3xl font-bold">{{ formatPrice(expensesByCategory.proveedores) }}</p>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                    <input 
+                        type="text"
+                        [(ngModel)]="searchTerm"
+                        placeholder="Descripción o notas..."
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                    <select 
+                        [(ngModel)]="filterCategory"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="todas">Todas</option>
+                        <option value="servicios">Servicios</option>
+                        <option value="empleados">Empleados</option>
+                        <option value="proveedores">Proveedores</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+                    <select 
+                        [(ngModel)]="filterPaymentMethod"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="todos">Todos</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Desde</label>
+                    <input 
+                        type="date"
+                        [(ngModel)]="startDate"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Hasta</label>
+                    <input 
+                        type="date"
+                        [(ngModel)]="endDate"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button 
+                    (click)="clearFilters()"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200">
+                    Limpiar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de gastos -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gradient-to-r from-red-500 to-red-600 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Descripción</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Categoría</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Monto</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Método Pago</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr *ngFor="let expense of paginatedExpenses" class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-mono text-gray-900">#{{ expense.id }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-600">{{ formatDate(expense.date) }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-semibold text-gray-900">{{ expense.description }}</div>
+                            <div *ngIf="expense.notes" class="text-xs text-gray-500 mt-1">{{ expense.notes }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span [class]="'px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ' + getCategoryInfo(expense.category)?.color">
+                                {{ getCategoryInfo(expense.category)?.label }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="text-sm font-bold text-red-600">{{ formatPrice(expense.amount) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="text-sm text-gray-600 capitalize">{{ expense.paymentMethod }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button 
+                                    (click)="viewDetails(expense)"
+                                    class="text-blue-600 hover:text-blue-800 transition-colors duration-150">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                                <button 
+                                    (click)="deleteExpense(expense.id)"
+                                    class="text-red-600 hover:text-red-800 transition-colors duration-150">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngIf="paginatedExpenses.length === 0">
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="text-gray-400">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                <p class="text-lg font-semibold mb-1">No hay gastos registrados</p>
+                                <p class="text-sm">No se encontraron gastos con los filtros aplicados</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div *ngIf="totalPages > 1" class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+            <div class="text-sm text-gray-600">
+                Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredExpenses.length) }} de {{ filteredExpenses.length }}
+            </div>
+            <div class="flex gap-2">
+                <button 
+                    (click)="currentPage = currentPage - 1"
+                    [disabled]="currentPage === 1"
+                    class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+                <button 
+                    (click)="currentPage = currentPage + 1"
+                    [disabled]="currentPage === totalPages"
+                    class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar Gasto -->
+<div *ngIf="showAddModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showAddModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 text-white sticky top-0">
+            <h3 class="text-xl font-bold">Registrar Nuevo Gasto</h3>
+        </div>
+        <form (ngSubmit)="saveExpense()" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Descripción -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
+                    <input 
+                        type="text"
+                        [(ngModel)]="newExpense.description"
+                        name="description"
+                        placeholder="Ej: Pago de servicios, salario, compra de insumos..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required>
+                </div>
+
+                <!-- Monto -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Monto *</label>
+                    <input 
+                        type="number"
+                        [(ngModel)]="newExpense.amount"
+                        name="amount"
+                        placeholder="0"
+                        min="0"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required>
+                </div>
+
+                <!-- Categoría -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
+                    <select 
+                        [(ngModel)]="newExpense.category"
+                        name="category"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required>
+                        <option value="servicios">Servicios</option>
+                        <option value="empleados">Empleados</option>
+                        <option value="proveedores">Proveedores</option>
+                    </select>
+                </div>
+
+                <!-- Fecha -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
+                    <input 
+                        type="date"
+                        [(ngModel)]="newExpense.date"
+                        name="date"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required>
+                </div>
+
+                <!-- Método de pago -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago *</label>
+                    <select 
+                        [(ngModel)]="newExpense.paymentMethod"
+                        name="paymentMethod"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        required>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                    </select>
+                </div>
+
+                <!-- Notas -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notas (Opcional)</label>
+                    <textarea 
+                        [(ngModel)]="newExpense.notes"
+                        name="notes"
+                        rows="3"
+                        placeholder="Información adicional sobre el gasto..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button 
+                    type="button"
+                    (click)="showAddModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    type="submit"
+                    class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 font-semibold">
+                    Registrar Gasto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Ver Detalles -->
+<div *ngIf="showDetailModal && selectedExpense" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showDetailModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4 text-white rounded-t-lg">
+            <h3 class="text-xl font-bold">Detalles del Gasto</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-600">ID</p>
+                    <p class="text-lg font-semibold">#{{ selectedExpense.id }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-600">Descripción</p>
+                    <p class="text-lg font-semibold">{{ selectedExpense.description }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Monto</p>
+                        <p class="text-xl font-bold text-red-600">{{ formatPrice(selectedExpense.amount) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Fecha</p>
+                        <p class="text-lg font-semibold">{{ formatDate(selectedExpense.date) }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-2">Categoría</p>
+                        <span [class]="'px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ' + getCategoryInfo(selectedExpense.category)?.color">
+                            <div class="w-3 h-3"></div>
+                            {{ getCategoryInfo(selectedExpense.category)?.label }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Método de Pago</p>
+                        <p class="text-lg font-semibold capitalize">{{ selectedExpense.paymentMethod }}</p>
+                    </div>
+                </div>
+
+                <div *ngIf="selectedExpense.notes">
+                    <p class="text-sm text-gray-600">Notas</p>
+                    <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{{ selectedExpense.notes }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-600">Registrado por</p>
+                    <p class="text-sm text-gray-700">{{ selectedExpense.createdBy }}</p>
+                </div>
+            </div>
+
+            <button 
+                (click)="showDetailModal = false"
+                class="w-full mt-6 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
