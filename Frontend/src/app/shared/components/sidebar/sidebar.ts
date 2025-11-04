@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 import {SidebarService} from '../../../core/services/sidebar/sidebar';
+import {BoxRegister} from '../../../core/services/box/box-register';
 
 interface MenuItem {
   name: string;
@@ -10,6 +11,8 @@ interface MenuItem {
   icon: string;
   submenu?: MenuItem[];
   expanded?: boolean;
+  badge?: string;
+  badgeColor?: string;
 }
 
 @Component({
@@ -74,12 +77,35 @@ export class Sidebar implements OnInit, OnDestroy {
     }
   ];
 
-  constructor(private sidebarService: SidebarService) {}
+  constructor(
+    private sidebarService: SidebarService,
+    private boxService: BoxRegister
+  ) {}
 
   ngOnInit() {
     this.sub = this.sidebarService.sidebarOpen$.subscribe((state) => {
       this.isOpen = state;
     });
+    
+    // Actualizar el badge de la caja cada 5 segundos
+    this.updateCashBadge();
+    setInterval(() => this.updateCashBadge(), 5000);
+  }
+
+  updateCashBadge() {
+    const operationsMenu = this.menuItems.find(m => m.name === 'Operaciones');
+    if (operationsMenu?.submenu) {
+      const cashItem = operationsMenu.submenu.find(s => s.name === 'Caja');
+      if (cashItem) {
+        if (this.boxService.isBoxOpen()) {
+          cashItem.badge = 'Abierta';
+          cashItem.badgeColor = 'bg-green-500';
+        } else {
+          cashItem.badge = undefined;
+          cashItem.badgeColor = undefined;
+        }
+      }
+    }
   }
 
   toggleSidebar() {

@@ -29,7 +29,7 @@ interface Transaction {
   amount: number;
   description: string;
   timestamp: Date;
-  paymentMethod?: 'efectivo' | 'tarjeta' | 'transferencia';
+  paymentMethod?: string;
 }
 
 @Component({
@@ -55,6 +55,8 @@ export class Box implements OnInit {
   closingNotes: string = '';
   filterStatus: string = 'todas';
   searchTerm: string = '';
+  startDate: string = '';
+  endDate: string = '';
   currentPage = 1;
   itemsPerPage = 10;
   selectedRegister: CashRegister | null = null;
@@ -64,6 +66,8 @@ export class Box implements OnInit {
   ngOnInit() {
     this.loadRegisterHistory();
     this.loadCurrentRegister();
+    // Recargar la caja cada cierto tiempo para reflejar ventas
+    setInterval(() => this.loadCurrentRegister(), 5000);
   }
 
   // Cargar caja actual
@@ -185,34 +189,9 @@ export class Box implements OnInit {
   }
 
   // Registrar venta (esto se llamaría desde el módulo de ventas)
-  registerSale(amount: number, paymentMethod: 'efectivo' | 'tarjeta' | 'transferencia') {
-    if (!this.currentRegister) return;
-
-    const transaction: Transaction = {
-      id: '',
-      type: 'venta',
-      amount: amount,
-      description: 'Venta registrada',
-      timestamp: new Date(),
-      paymentMethod: paymentMethod
-    };
-
-    this.currentRegister.transactions.push(transaction);
-    this.currentRegister.totalsales += amount;
-
-    switch(paymentMethod) {
-      case 'efectivo':
-        this.currentRegister.cashsales  += amount;
-        break;
-      case 'tarjeta':
-        this.currentRegister.cardsales += amount;
-        break;
-      case 'transferencia':
-        this.currentRegister.transfersales += amount;
-        break;
-    }
-
-    localStorage.setItem('currentRegister', JSON.stringify(this.currentRegister));
+  registerSale(amount: number, paymentMethod: string) {
+    // Usar el servicio para mantener consistencia
+    return this.boxRegister.registerSale(amount, paymentMethod);
   }
 
   // Ver detalles
@@ -253,6 +232,19 @@ export class Box implements OnInit {
         r.openedby.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         r.id.toLowerCase().includes(this.searchTerm.toLowerCase())
       );
+    }
+
+    // Filtro por fecha de apertura
+    if (this.startDate) {
+      const start = new Date(this.startDate);
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(r => new Date(r.openingdate) >= start);
+    }
+
+    if (this.endDate) {
+      const end = new Date(this.endDate);
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(r => new Date(r.openingdate) <= end);
     }
 
     return filtered;
