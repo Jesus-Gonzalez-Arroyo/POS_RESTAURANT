@@ -51,6 +51,10 @@ export class Bills implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
   
+  // Ordenamiento
+  sortBy: string = 'date';
+  sortOrder: 'asc' | 'desc' = 'desc';
+  
   categories = [
     { value: 'servicios', label: 'Servicios', color: 'bg-blue-100 text-blue-800', icon: 'wrench' },
     { value: 'empleados', label: 'Empleados', color: 'bg-green-100 text-green-800', icon: 'users' },
@@ -183,7 +187,39 @@ export class Bills implements OnInit {
       filtered = filtered.filter(e => new Date(e.date) <= end);
     }
 
-    return filtered;
+    // Ordenamiento
+    return this.sortExpenses(filtered);
+  }
+
+  sortExpenses(expenses: Expense[]) {
+    return expenses.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (this.sortBy) {
+        case 'id':
+          comparison = a.id - b.id;
+          break;
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case 'amount':
+          comparison = a.amount - b.amount;
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return this.sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  changeSortBy(field: string) {
+    if (this.sortBy === field) {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = field;
+      this.sortOrder = 'asc';
+    }
   }
 
   get paginatedExpenses() {
