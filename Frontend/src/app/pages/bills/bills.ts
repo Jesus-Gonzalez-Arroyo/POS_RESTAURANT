@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
+import { Bill } from '../../core/services/bill/bill';
 
 interface Expense {
   id: number;
@@ -10,8 +11,8 @@ interface Expense {
   category: 'servicios' | 'empleados' | 'proveedores';
   date: Date;
   notes?: string;
-  paymentMethod: 'efectivo' | 'tarjeta' | 'transferencia';
-  createdBy: string;
+  paymentmethod: 'efectivo' | 'tarjeta' | 'transferencia';
+  createdby: string;
 }
 
 @Component({
@@ -36,8 +37,8 @@ export class Bills implements OnInit {
     category: 'servicios',
     date: new Date(),
     notes: '',
-    paymentMethod: 'efectivo',
-    createdBy: 'Usuario Actual'
+    paymentmethod: 'efectivo',
+    createdby: 'Usuario Actual'
   };
   
   // Filtros
@@ -63,44 +64,22 @@ export class Bills implements OnInit {
   
   paymentMethods = ['efectivo', 'tarjeta', 'transferencia'];
 
+  constructor(private billService: Bill) {}
+
   ngOnInit() {
     this.loadExpenses();
   }
 
   loadExpenses() {
-    // TODO: Cargar desde el backend
-    // Datos de ejemplo
-    this.expenses = [
-      {
-        id: 1,
-        description: 'Pago de electricidad',
-        amount: 150000,
-        category: 'servicios',
-        date: new Date('2025-11-01'),
-        notes: 'Factura mensual',
-        paymentMethod: 'transferencia',
-        createdBy: 'Admin'
+    this.billService.getBills().subscribe({
+      next: (data: any) => {
+        this.expenses = data;
       },
-      {
-        id: 2,
-        description: 'Salario empleado - Juan Pérez',
-        amount: 1200000,
-        category: 'empleados',
-        date: new Date('2025-11-02'),
-        paymentMethod: 'transferencia',
-        createdBy: 'Admin'
-      },
-      {
-        id: 3,
-        description: 'Compra de insumos',
-        amount: 350000,
-        category: 'proveedores',
-        date: new Date('2025-11-03'),
-        notes: 'Proveedor XYZ - Productos varios',
-        paymentMethod: 'efectivo',
-        createdBy: 'Admin'
+      error: (error) => {
+        Alert('Error', 'No se pudieron cargar los gastos', 'error');
+        console.error('Error al cargar los gastos', error);
       }
-    ];
+    });
   }
 
   openAddModal() {
@@ -110,8 +89,8 @@ export class Bills implements OnInit {
       category: 'servicios',
       date: new Date(),
       notes: '',
-      paymentMethod: 'efectivo',
-      createdBy: 'Usuario Actual'
+      paymentmethod: 'efectivo',
+      createdby: 'Usuario Actual'
     };
     this.showAddModal = true;
   }
@@ -129,16 +108,22 @@ export class Bills implements OnInit {
       category: this.newExpense.category!,
       date: this.newExpense.date!,
       notes: this.newExpense.notes,
-      paymentMethod: this.newExpense.paymentMethod!,
-      createdBy: this.newExpense.createdBy!
+      paymentmethod: this.newExpense.paymentmethod!,
+      createdby: this.newExpense.createdby!
     };
 
-    this.expenses.unshift(expense);
-    
-    // TODO: Guardar en backend
-    
+    this.billService.addBill(expense).subscribe({
+      next: (data: any) => {
+        Alert('Completado', 'Gasto registrado exitosamente', 'success');
+        this.loadExpenses();
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudo registrar el gasto, Intentelo nuevamente', 'error');
+        console.error('Error al registrar el gasto', error);
+      }
+    });
+
     this.showAddModal = false;
-    Alert('Completado', 'Gasto registrado exitosamente', 'success');
   }
 
   viewDetails(expense: Expense) {
@@ -149,9 +134,16 @@ export class Bills implements OnInit {
   deleteExpense(id: number) {
     ConfirmAlert({ title: 'Confirmar Eliminación', message: '¿Está seguro de eliminar este gasto?', btnAccept: 'Si, eliminar' }).then((confirmed) => {
       if (confirmed) {
-        this.expenses = this.expenses.filter(e => e.id !== id);
-        // TODO: Eliminar del backend
-        Alert('Completado', 'Gasto eliminado exitosamente', 'success');
+        this.billService.deleteBill(id).subscribe({
+          next: () => {
+            Alert('Completado', 'Gasto eliminado exitosamente', 'success');
+            this.loadExpenses();
+          },
+          error: (error) => {
+            Alert('Error', 'No se pudo eliminar el gasto', 'error');
+            console.error('Error al eliminar el gasto', error);
+          }
+        });
       }
     });
   }
@@ -172,7 +164,7 @@ export class Bills implements OnInit {
     }
 
     if (this.filterPaymentMethod !== 'todos') {
-      filtered = filtered.filter(e => e.paymentMethod === this.filterPaymentMethod);
+      filtered = filtered.filter(e => e.paymentmethod === this.filterPaymentMethod);
     }
 
     if (this.startDate) {
