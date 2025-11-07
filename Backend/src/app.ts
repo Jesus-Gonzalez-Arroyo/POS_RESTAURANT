@@ -7,6 +7,7 @@ import router_orders from './routes/orders.route';
 import router_sales from './routes/sales.route';
 import router_box from './routes/box.route';
 import errorHandler from './middlewares/error.middleware'
+import router_bills from './routes/bills.route';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/v1/auth', router_auth);
 app.use('/api/v1/orders', router_orders);
 app.use('/api/v1/sales', router_sales);
 app.use('/api/v1/box', router_box);
+app.use('/api/v1/bills', router_bills);
 
 app.use(errorHandler);
 
