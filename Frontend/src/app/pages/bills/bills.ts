@@ -16,8 +16,9 @@ export class Bills implements OnInit {
   Math = Math;
   
   expenses: Expense[] = [];
-  showAddModal = false;
-  showDetailModal = false;
+  showAddModal: boolean = false;
+  isEditMode: boolean = false;
+  showDetailModal: boolean = false;
   selectedExpense: Expense | null = null;
   
   // Formulario
@@ -83,6 +84,7 @@ export class Bills implements OnInit {
       createdby: 'Usuario Actual'
     };
     this.showAddModal = true;
+    this.isEditMode = false;
   }
 
   saveExpense() {
@@ -110,6 +112,42 @@ export class Bills implements OnInit {
       error: (error) => {
         Alert('Error', 'No se pudo registrar el gasto, Intentelo nuevamente', 'error');
         console.error('Error al registrar el gasto', error);
+      }
+    });
+
+    this.showAddModal = false;
+  }
+
+  openModalEdit(expense: Expense) {
+    this.newExpense = expense;
+    this.showAddModal = true;
+    this.isEditMode = true;
+  }
+
+  editExpense() {
+    if (!this.newExpense.description || !this.newExpense.amount || this.newExpense.amount <= 0) {
+      Alert('Datos incompletos','Por favor complete todos los campos obligatorios', 'error');
+      return;
+    }
+    const updatedExpense: Expense = {
+      id: this.newExpense.id!,
+      description: this.newExpense.description!,
+      amount: this.newExpense.amount!,
+      category: this.newExpense.category!,
+      date: this.newExpense.date!,
+      notes: this.newExpense.notes,
+      paymentmethod: this.newExpense.paymentmethod!,
+      createdby: this.newExpense.createdby!
+    };
+
+    this.billService.updateBill(updatedExpense.id, updatedExpense).subscribe({
+      next: (data: any) => {
+        Alert('Completado', 'Gasto actualizado exitosamente', 'success');
+        this.loadExpenses();
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudo actualizar el gasto, Intentelo nuevamente', 'error');
+        console.error('Error al actualizar el gasto', error);
       }
     });
 
@@ -215,14 +253,14 @@ export class Bills implements OnInit {
   }
 
   get totalExpenses() {
-    return this.filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+    return this.filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
   }
 
   get expensesByCategory() {
     return {
-      servicios: this.filteredExpenses.filter(e => e.category === 'servicios').reduce((sum, e) => sum + e.amount, 0),
-      empleados: this.filteredExpenses.filter(e => e.category === 'empleados').reduce((sum, e) => sum + e.amount, 0),
-      proveedores: this.filteredExpenses.filter(e => e.category === 'proveedores').reduce((sum, e) => sum + e.amount, 0)
+      servicios: this.filteredExpenses.filter(e => e.category === 'servicios').reduce((sum, e) => sum + Number(e.amount), 0),
+      empleados: this.filteredExpenses.filter(e => e.category === 'empleados').reduce((sum, e) => sum + Number(e.amount), 0),
+      proveedores: this.filteredExpenses.filter(e => e.category === 'proveedores').reduce((sum, e) => sum + Number(e.amount), 0)
     };
   }
 

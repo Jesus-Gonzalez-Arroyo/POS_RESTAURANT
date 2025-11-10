@@ -6,6 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 import { Auth } from '../../core/services/auth/auth';
+import { Alert } from '../../shared/utils/alert';
 
 @Component({
   selector: 'app-login',
@@ -35,6 +36,7 @@ export class Login {
         },
         error: (error) => {
           console.error('Error en el login:', error);
+          Alert('Error', 'Credenciales inválidas. Por favor, intente nuevamente.', 'error');
         }
       });
     } else {
