@@ -11,17 +11,8 @@ export const getProductById = async (id: number): Promise<Product | null> => {
   return res.rows.length > 0 ? res.rows[0] : null
 }
 
-export const getProductByName = async (name: string): Promise<Product | null> => {
-  const res = await pool.query('SELECT * FROM products WHERE LOWER(name) = LOWER($1)', [name])
-  return res.rows.length > 0 ? res.rows[0] : null
-}
 
 export const insertProduct = async (name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], img?: Buffer): Promise<any> => {
-  const existingProduct = await getProductByName(name)
-  if (existingProduct) {
-    throw new Error(`Ya existe un producto con el nombre "${name}"`)
-  }
-
   if (Number(price) < 0) {
     throw new Error('El precio no puede ser negativo')
   }

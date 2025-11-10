@@ -2,35 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoxRegister } from '../../core/services/box/box-register';
-
-interface CashRegister {
-  id: string;
-  openingdate: Date;
-  closingdate?: Date;
-  openingamount: number;
-  closingamount?: number;
-  expectedamount?: number;
-  difference?: number;
-  totalsales: number;
-  totalexpenses: number;
-  cashsales: number;
-  cardsales: number;
-  transfersales: number;
-  status: 'abierta' | 'cerrada';
-  openedby: string;
-  closedby?: string;
-  transactions: Transaction[];
-  notes?: string;
-}
-
-interface Transaction {
-  id: string;
-  type: 'venta' | 'gasto' | 'retiro' | 'ingreso';
-  amount: number;
-  description: string;
-  timestamp: Date;
-  paymentMethod?: string;
-}
+import { CashRegister, Transaction } from '../../core/models/index';
 
 @Component({
   selector: 'app-box',
@@ -41,7 +13,7 @@ interface Transaction {
 })
 export class Box implements OnInit {
   Math = Math;
-  currentRegister: CashRegister | null = null;
+  currentRegister: Omit<CashRegister, 'id'> | null = null;
   registerHistory: CashRegister[] = [];
   showOpenModal = false;
   showCloseModal = false;
@@ -96,7 +68,6 @@ export class Box implements OnInit {
     }
 
     this.currentRegister = {
-      id: '',
       openingdate: new Date(),
       openingamount: this.openingAmount,
       totalsales: 0,

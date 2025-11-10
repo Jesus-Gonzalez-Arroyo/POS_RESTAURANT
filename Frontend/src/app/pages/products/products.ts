@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
-import { ProductsService, Product, CreateProductDto } from '../../core/services/products/products.service';
+import { ProductsService } from '../../core/services/products/products.service';
+import { Product } from '../../core/models/index';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 
 @Component({
@@ -272,7 +273,7 @@ export class Products implements OnInit {
   addProduct() {
     if (this.isValidProduct()) {
       this.loading = true;
-      const productData: CreateProductDto = {
+      const productData: Omit<Product, 'id'> = {
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
         earnings: Number(this.newProduct.earnings),
@@ -299,7 +300,7 @@ export class Products implements OnInit {
   updateProduct() {
     if (this.isValidProduct() && this.editingProductId) {
       this.loading = true;
-      const productData: CreateProductDto = {
+      const productData: Omit<Product, 'id'> = {
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
         earnings: Number(this.newProduct.earnings),
