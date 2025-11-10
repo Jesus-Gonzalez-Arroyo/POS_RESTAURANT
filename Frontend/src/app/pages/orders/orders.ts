@@ -7,18 +7,7 @@ import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { Sales } from '../../core/services/sales/sales';
 import { BoxRegister } from '../../core/services/box/box-register';
-
-export interface Order {
-  id: number;
-  customer: string;
-  total: string;
-  isdelivery: boolean;
-  deliveryaddress: string | null;
-  paymentmethod: string;
-  products: Array<{ name: string; price: number; quantity: number }>;
-  status: string;
-  time: Date;
-}
+import { Order } from '../../core/models/index';
 
 @Component({
   selector: 'app-orders',

@@ -2,18 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
-import {SidebarService} from '../../../core/services/sidebar/sidebar';
-import {BoxRegister} from '../../../core/services/box/box-register';
-
-interface MenuItem {
-  name: string;
-  path?: string;
-  icon: string;
-  submenu?: MenuItem[];
-  expanded?: boolean;
-  badge?: string;
-  badgeColor?: string;
-}
+import { SidebarService } from '../../../core/services/sidebar/sidebar';
+import { BoxRegister } from '../../../core/services/box/box-register';
+import { MenuItem } from '../../../core/models/index';
 
 @Component({
   selector: 'app-sidebar',

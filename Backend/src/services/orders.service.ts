@@ -1,7 +1,7 @@
 import { Order } from '../interfaces/orders.interface'
 import pool from "../config/connectDB";
 
-export const getAllOrders = async (): Promise<any[]> => {
+export const getAllOrders = async (): Promise<Order[]> => {
     const res = await pool.query("SELECT * FROM orders");
     return res.rows;
 }

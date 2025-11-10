@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Orders } from '../../core/services/orders/orders';
-import { Product, ProductsService } from '../../core/services/products/products.service';
+import { ProductsService } from '../../core/services/products/products.service';
+import { Product } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 

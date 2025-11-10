@@ -3,17 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { Bill } from '../../core/services/bill/bill';
-
-interface Expense {
-  id: number;
-  description: string;
-  amount: number;
-  category: 'servicios' | 'empleados' | 'proveedores';
-  date: Date;
-  notes?: string;
-  paymentmethod: 'efectivo' | 'tarjeta' | 'transferencia';
-  createdby: string;
-}
+import { Expense } from '../../core/models/index';
 
 @Component({
   selector: 'app-bills',

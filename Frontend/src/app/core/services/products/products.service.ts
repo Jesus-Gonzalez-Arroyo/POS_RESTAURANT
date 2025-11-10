@@ -2,24 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  earnings: number;
-  category: string;
-  availability: boolean;
-  img?: any;
-}
-
-export interface CreateProductDto {
-  name: string;
-  price: number;
-  earnings: number;
-  category: string;
-  availability: boolean;
-  img?: File;
-}
+import { Product } from '../../models/index';
 
 @Injectable({
   providedIn: 'root'
@@ -33,12 +16,12 @@ export class ProductsService {
     return this.http.get<Product[]>(this.baseUrl);
   }
 
-  createProduct(product: CreateProductDto): Observable<any> {
+  createProduct(product: Omit<Product, 'id'>): Observable<any> {
     const formData = this.createFormData(product);
     return this.http.post<any>(this.baseUrl, formData);
   }
 
-  updateProduct(id: number, product: CreateProductDto): Observable<any> {
+  updateProduct(id: number, product: Omit<Product, 'id'>): Observable<any> {
     const formData = this.createFormData(product);
     return this.http.put<any>(`${this.baseUrl}/${id}`, formData);
   }
@@ -47,7 +30,7 @@ export class ProductsService {
     return this.http.delete<any>(`${this.baseUrl}/${id}`);
   }
 
-  private createFormData(product: CreateProductDto): FormData {
+  private createFormData(product: Omit<Product, 'id'>): FormData {
     const formData = new FormData();
     formData.append('name', product.name);
     formData.append('price', product.price.toString());

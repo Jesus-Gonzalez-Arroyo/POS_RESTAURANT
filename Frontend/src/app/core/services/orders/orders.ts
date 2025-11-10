@@ -1,18 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
-export interface Order {
-  id: number;
-  customer: string;
-  total: string;
-  isdelivery: boolean;
-  deliveryaddress: string | null;
-  paymentmethod: string;
-  products: Array<{ name: string; price: number; quantity: number }>;
-  status: string;
-  time: Date;
-}
+import { Order } from '../../models/index';
 
 @Injectable({
   providedIn: 'root'
