@@ -1,0 +1,415 @@
+<div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div>
+            <h2 class="text-gray-700 text-2xl font-bold">Configuración del Sistema</h2>
+            <p class="text-gray-500 text-sm mt-1">Gestión de categorías de productos y métodos de pago</p>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button 
+                    [class]="'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-all duration-200 ' + (activeTab === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')"
+                    (click)="activeTab = 'categories'">
+                    Categorías de Productos
+                </button>
+                <button 
+                    [class]="'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-all duration-200 ' + (activeTab === 'payments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')"
+                    (click)="activeTab = 'payments'">
+                    Métodos de Pago
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Categorías Tab -->
+    <div *ngIf="activeTab === 'categories'">
+        <!-- Header Categorías -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Categorías de Productos</h3>
+                <p class="text-gray-600 text-sm">Administra las categorías para organizar tus productos</p>
+            </div>
+            <button 
+                (click)="openCategoryModal()"
+                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-2 shadow-md">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Nueva Categoría
+            </button>
+        </div>
+
+        <!-- Grid de Categorías -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div *ngFor="let category of categories" 
+                class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                
+                <!-- Header de la tarjeta -->
+                <div [class]="'p-4 text-white ' + category.color">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i [class]="'fas text-xl ' + category.icon"></i>
+                            <div>
+                                <h4 class="font-semibold text-lg">{{ category.name }}</h4>
+                                <p class="text-sm opacity-90">{{ category.description }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (category.isActive ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
+                                {{ category.isActive ? 'Activa' : 'Inactiva' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body de la tarjeta -->
+                <div class="p-4">
+                    <div class="text-xs text-gray-500 mb-4">
+                        <p>Creada: {{ formatDate(category.createdAt) }}</p>
+                        <p>Actualizada: {{ formatDate(category.updatedAt) }}</p>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="flex items-center gap-2">
+                        <button 
+                            (click)="openCategoryModal(category)"
+                            class="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                                <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                            </svg>
+                            Editar
+                        </button>
+                        <button 
+                            (click)="toggleCategoryStatus(category)"
+                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (category.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
+                            {{ category.isActive ? 'Desactivar' : 'Activar' }}
+                        </button>
+                        <button 
+                            (click)="deleteCategory(category.id)"
+                            class="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div *ngIf="categories.length === 0" class="text-center py-12">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12z" clip-rule="evenodd"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">No hay categorías registradas</h3>
+            <p class="text-gray-500 mb-4">Crea tu primera categoría para organizar tus productos</p>
+        </div>
+    </div>
+
+    <!-- Métodos de Pago Tab -->
+    <div *ngIf="activeTab === 'payments'">
+        <!-- Header Métodos de Pago -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Métodos de Pago</h3>
+                <p class="text-gray-600 text-sm">Configura los métodos de pago disponibles en tu negocio</p>
+            </div>
+            <button 
+                (click)="openPaymentModal()"
+                class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow-md">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Nuevo Método
+            </button>
+        </div>
+
+        <!-- Grid de Métodos de Pago -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div *ngFor="let payment of paymentMethods" 
+                class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                
+                <!-- Header de la tarjeta -->
+                <div [class]="'p-4 text-white ' + payment.color">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i [class]="'fas text-xl ' + payment.icon"></i>
+                            <div>
+                                <h4 class="font-semibold text-lg">{{ payment.name }}</h4>
+                                <p class="text-sm opacity-90">{{ payment.description }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (payment.isActive ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
+                                {{ payment.isActive ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body de la tarjeta -->
+                <div class="p-4">
+                    <div class="text-xs text-gray-500 mb-4">
+                        <p>Creado: {{ formatDate(payment.createdAt) }}</p>
+                        <p>Actualizado: {{ formatDate(payment.updatedAt) }}</p>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="flex items-center gap-2">
+                        <button 
+                            (click)="openPaymentModal(payment)"
+                            class="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                                <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                            </svg>
+                            Editar
+                        </button>
+                        <button 
+                            (click)="togglePaymentStatus(payment)"
+                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (payment.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
+                            {{ payment.isActive ? 'Desactivar' : 'Activar' }}
+                        </button>
+                        <button 
+                            (click)="deletePaymentMethod(payment.id)"
+                            class="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div *ngIf="paymentMethods.length === 0" class="text-center py-12">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">No hay métodos de pago registrados</h3>
+            <p class="text-gray-500 mb-4">Agrega métodos de pago para procesar las ventas</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Categoría -->
+<div *ngIf="showCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showCategoryModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 text-white rounded-t-xl">
+            <h3 class="text-xl font-bold">
+                {{ editingCategory ? 'Editar Categoría' : 'Nueva Categoría' }}
+            </h3>
+        </div>
+        
+        <form (ngSubmit)="saveCategory()" class="p-6 space-y-4">
+            <!-- Nombre -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                <input 
+                    type="text"
+                    [(ngModel)]="newCategory.name"
+                    name="name"
+                    placeholder="Ej: Bebidas, Comidas, Postres..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required>
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <textarea 
+                    [(ngModel)]="newCategory.description"
+                    name="description"
+                    rows="2"
+                    placeholder="Descripción opcional de la categoría..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            </div>
+
+            <!-- Color -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <div class="grid grid-cols-4 gap-3">
+                    <div *ngFor="let color of availableColors" class="flex flex-col items-center">
+                        <input 
+                            type="radio"
+                            [id]="'color-' + color.value"
+                            [(ngModel)]="newCategory.color"
+                            [value]="color.value"
+                            name="color"
+                            class="sr-only">
+                        <label 
+                            [for]="'color-' + color.value"
+                            [class]="'w-8 h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newCategory.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
+                            [title]="color.label">
+                        </label>
+                        <span class="text-xs text-gray-600 mt-1">{{ color.label }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ícono -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ícono</label>
+                <div class="grid grid-cols-4 gap-3">
+                    <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
+                        <input 
+                            type="radio"
+                            [id]="'icon-' + icon.value"
+                            [(ngModel)]="newCategory.icon"
+                            [value]="icon.value"
+                            name="icon"
+                            class="sr-only">
+                        <label 
+                            [for]="'icon-' + icon.value"
+                            [class]="'w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newCategory.icon === icon.value ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 hover:border-gray-400')">
+                            <i [class]="'fas text-lg ' + icon.value"></i>
+                        </label>
+                        <span class="text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="flex items-center">
+                <input 
+                    type="checkbox"
+                    [(ngModel)]="newCategory.isActive"
+                    name="isActive"
+                    id="categoryActive"
+                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="categoryActive" class="ml-2 block text-sm text-gray-700">
+                    Categoría activa
+                </label>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-4">
+                <button 
+                    type="button"
+                    (click)="showCategoryModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    type="submit"
+                    class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-semibold">
+                    {{ editingCategory ? 'Actualizar' : 'Crear' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Método de Pago -->
+<div *ngIf="showPaymentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showPaymentModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 text-white rounded-t-xl">
+            <h3 class="text-xl font-bold">
+                {{ editingPayment ? 'Editar Método de Pago' : 'Nuevo Método de Pago' }}
+            </h3>
+        </div>
+        
+        <form (ngSubmit)="savePaymentMethod()" class="p-6 space-y-4">
+            <!-- Nombre -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                <input 
+                    type="text"
+                    [(ngModel)]="newPaymentMethod.name"
+                    name="name"
+                    placeholder="Ej: Efectivo, Tarjeta, Transferencia..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required>
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <textarea 
+                    [(ngModel)]="newPaymentMethod.description"
+                    name="description"
+                    rows="2"
+                    placeholder="Descripción opcional del método de pago..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+            </div>
+
+            <!-- Color -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <div class="grid grid-cols-4 gap-3">
+                    <div *ngFor="let color of availableColors" class="flex flex-col items-center">
+                        <input 
+                            type="radio"
+                            [id]="'payment-color-' + color.value"
+                            [(ngModel)]="newPaymentMethod.color"
+                            [value]="color.value"
+                            name="paymentColor"
+                            class="sr-only">
+                        <label 
+                            [for]="'payment-color-' + color.value"
+                            [class]="'w-8 h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newPaymentMethod.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
+                            [title]="color.label">
+                        </label>
+                        <span class="text-xs text-gray-600 mt-1">{{ color.label }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ícono -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ícono</label>
+                <div class="grid grid-cols-4 gap-3">
+                    <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
+                        <input 
+                            type="radio"
+                            [id]="'payment-icon-' + icon.value"
+                            [(ngModel)]="newPaymentMethod.icon"
+                            [value]="icon.value"
+                            name="paymentIcon"
+                            class="sr-only">
+                        <label 
+                            [for]="'payment-icon-' + icon.value"
+                            [class]="'w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newPaymentMethod.icon === icon.value ? 'border-green-500 bg-green-50 text-green-600' : 'border-gray-300 hover:border-gray-400')">
+                            <i [class]="'fas text-lg ' + icon.value"></i>
+                        </label>
+                        <span class="text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="flex items-center">
+                <input 
+                    type="checkbox"
+                    [(ngModel)]="newPaymentMethod.isActive"
+                    name="isActive"
+                    id="paymentActive"
+                    class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                <label for="paymentActive" class="ml-2 block text-sm text-gray-700">
+                    Método activo
+                </label>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-4">
+                <button 
+                    type="button"
+                    (click)="showPaymentModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    type="submit"
+                    class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold">
+                    {{ editingPayment ? 'Actualizar' : 'Crear' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
