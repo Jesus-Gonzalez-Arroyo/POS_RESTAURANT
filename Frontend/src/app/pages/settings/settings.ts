@@ -1,29 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import { Category, PaymentMethod } from '../../core/models/settings.interface';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
-
-interface Category {
-  id: number;
-  name: string;
-  description?: string;
-  color: string;
-  icon: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface PaymentMethod {
-  id: number;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  color: string;
-  icon: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 @Component({
   selector: 'app-categories',
@@ -278,8 +258,7 @@ export class Categories implements OnInit {
       Alert('Completado', 'Método de pago actualizado exitosamente', 'success');
     } else {
       // Crear nuevo método
-      const newPayment: PaymentMethod = {
-        id: this.paymentMethods.length + 1,
+      const newPayment: Omit<PaymentMethod, 'id'> = {
         name: this.newPaymentMethod.name!,
         description: this.newPaymentMethod.description,
         color: this.newPaymentMethod.color!,
@@ -288,7 +267,7 @@ export class Categories implements OnInit {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      this.paymentMethods.push(newPayment);
+      
       Alert('Completado', 'Método de pago creado exitosamente', 'success');
     }
 
