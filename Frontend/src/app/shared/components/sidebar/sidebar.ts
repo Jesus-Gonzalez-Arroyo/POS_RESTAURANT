@@ -38,8 +38,6 @@ export class Sidebar implements OnInit, OnDestroy {
       expanded: false,
       submenu: [
         { name: 'Productos', path: '/products', icon: 'products' },
-        { name: 'Categorías', path: '/categories', icon: 'categories' },
-        { name: 'Proveedores', path: '/suppliers', icon: 'suppliers' }
       ]
     },
     { 
@@ -49,16 +47,6 @@ export class Sidebar implements OnInit, OnDestroy {
       submenu: [
         { name: 'Ventas Realizadas', path: '/accounting', icon: 'accounting' },
         { name: 'Gastos', path: '/expenses', icon: 'expenses' },
-      ]
-    },
-    { 
-      name: 'Reportes', 
-      icon: 'reports',
-      expanded: false,
-      submenu: [
-        { name: 'Ventas', path: '/reports/sales', icon: 'chart-bar' },
-        { name: 'Inventario', path: '/reports/inventory', icon: 'chart-pie' },
-        { name: 'Ganancias', path: '/reports/profits', icon: 'chart-area' }
       ]
     },
     { 
