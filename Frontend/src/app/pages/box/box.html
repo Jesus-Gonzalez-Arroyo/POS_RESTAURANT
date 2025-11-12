@@ -1,0 +1,458 @@
+<div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-gray-700 text-2xl font-bold">Gestión de Caja</h2>
+                <p class="text-gray-500 text-sm mt-1">Control de apertura y cierre de caja registradora</p>
+            </div>
+        </div>
+
+        <!-- Estado actual de la caja -->
+        <div *ngIf="currentRegister" class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M21.9 8.89l-1.05-4.37c-.22-.9-1-1.52-1.91-1.52H5.05c-.9 0-1.69.63-1.9 1.52L2.1 8.89c-.24 1.02-.02 2.06.62 2.88.08.11.19.19.28.29V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6.94c.09-.09.2-.18.28-.28.64-.82.87-1.87.62-2.89zM9 17H7v-4h2v4zm4 0h-2v-4h2v4zm4 0h-2v-4h2v4z"/>
+                        </svg>
+                        <span class="text-2xl font-bold">CAJA ABIERTA</span>
+                    </div>
+                    <p class="text-green-100 text-sm">Abierta por: {{ currentRegister.openedby }}</p>
+                    <p class="text-green-100 text-xs">{{ formatDate(currentRegister.openingdate) }}</p>
+                </div>
+                <button 
+                    (click)="showCloseModal = true"
+                    class="px-6 py-3 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-all duration-200 font-semibold shadow-md">
+                    Cerrar Caja
+                </button>
+            </div>
+
+            <!-- Resumen actual -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-green-400/30">
+                <div>
+                    <p class="text-green-100 text-xs mb-1">Monto Inicial</p>
+                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.openingamount) }}</p>
+                </div>
+                <div>
+                    <p class="text-green-100 text-xs mb-1">Ventas Totales</p>
+                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.totalsales) }}</p>
+                </div>
+                <div>
+                    <p class="text-green-100 text-xs mb-1">Efectivo</p>
+                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.cashsales) }}</p>
+                </div>
+                <div>
+                    <p class="text-green-100 text-xs mb-1">Esperado en Caja</p>
+                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.openingamount + currentRegister.cashsales - currentRegister.totalexpenses) }}</p>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex gap-3 mt-6">
+                <button 
+                    (click)="showTransactionModal = true"
+                    class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Registrar Movimiento
+                </button>
+            </div>
+        </div>
+
+        <!-- Caja cerrada -->
+        <div *ngIf="!currentRegister" class="bg-gradient-to-r from-gray-400 to-gray-500 rounded-xl p-6 text-white shadow-lg mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z"/>
+                        </svg>
+                        <span class="text-2xl font-bold">CAJA CERRADA</span>
+                    </div>
+                    <p class="text-gray-100 text-sm">No hay una caja abierta actualmente</p>
+                </div>
+                <button 
+                    (click)="showOpenModal = true"
+                    class="px-6 py-3 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 font-semibold shadow-md">
+                    Abrir Caja
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                <input 
+                    type="text"
+                    [(ngModel)]="searchTerm"
+                    placeholder="ID o usuario..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select 
+                    [(ngModel)]="filterStatus"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="todas">Todas</option>
+                    <option value="abierta">Abiertas</option>
+                    <option value="cerrada">Cerradas</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Desde</label>
+                <input 
+                    type="date"
+                    [(ngModel)]="startDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Hasta</label>
+                <input 
+                    type="date"
+                    [(ngModel)]="endDate"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="flex items-end">
+                <button 
+                    (click)="searchTerm = ''; filterStatus = 'todas'; startDate = ''; endDate = ''"
+                    class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200">
+                    Limpiar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de historial -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Fecha Apertura</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Fecha Cierre</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Ventas</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Diferencia</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr *ngFor="let register of paginatedHistory" class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-mono text-gray-900">{{ register.id }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-600">{{ formatDate(register.openingdate) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span *ngIf="register.closingdate" class="text-sm text-gray-600">{{ formatDate(register.closingdate) }}</span>
+                            <span *ngIf="!register.closingdate" class="text-sm text-gray-400">-</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold mr-3">
+                                    {{ register.openedby.charAt(0) }}
+                                </div>
+                                <span class="text-sm text-gray-900">{{ register.openedby }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="text-sm font-semibold text-green-600">{{ formatPrice(register.totalsales) }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span *ngIf="register.difference !== undefined" 
+                                  [class]="register.difference >= 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-600'">
+                                {{ formatPrice(register.difference) }}
+                            </span>
+                            <span *ngIf="register.difference === undefined" class="text-sm text-gray-400">-</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span [class]="register.status === 'abierta' ? 
+                                'px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800' : 
+                                'px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800'">
+                                {{ register.status === 'abierta' ? 'Abierta' : 'Cerrada' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <button 
+                                (click)="viewDetails(register)"
+                                class="text-blue-600 hover:text-blue-800 transition-colors duration-150">
+                                <svg class="w-5 h-5 inline" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="paginatedHistory.length === 0">
+                        <td colspan="8" class="px-6 py-12 text-center">
+                            <div class="text-gray-400">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"/>
+                                </svg>
+                                <p class="text-lg font-semibold mb-1">No hay registros</p>
+                                <p class="text-sm">No se encontraron cajas registradoras con los filtros aplicados</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div *ngIf="totalPages > 1" class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+            <div class="text-sm text-gray-600">
+                Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredHistory.length) }} de {{ filteredHistory.length }}
+            </div>
+            <div class="flex gap-2">
+                <button 
+                    (click)="currentPage = currentPage - 1"
+                    [disabled]="currentPage === 1"
+                    class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+                <button 
+                    (click)="currentPage = currentPage + 1"
+                    [disabled]="currentPage === totalPages"
+                    class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Abrir Caja -->
+<div *ngIf="showOpenModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" (click)="showOpenModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 text-white">
+            <h3 class="text-xl font-bold">Abrir Caja Registradora</h3>
+        </div>
+        <div class="p-6">
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Monto Inicial (Efectivo)</label>
+                <input 
+                    type="number"
+                    [(ngModel)]="openingAmount"
+                    placeholder="0"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg">
+                <p class="text-sm text-gray-500 mt-2">Ingrese el monto en efectivo con el que abre la caja</p>
+            </div>
+            <div class="flex gap-3">
+                <button 
+                    (click)="showOpenModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    (click)="openRegister()"
+                    class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold">
+                    Abrir Caja
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cerrar Caja -->
+<div *ngIf="showCloseModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" (click)="showCloseModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 text-white">
+            <h3 class="text-xl font-bold">Cerrar Caja Registradora</h3>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p class="text-gray-600">Monto Inicial:</p>
+                        <p class="font-semibold">{{ formatPrice(currentRegister?.openingamount || 0) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Ventas Efectivo:</p>
+                        <p class="font-semibold text-green-600">{{ formatPrice(currentRegister?.cashsales || 0) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Gastos/Retiros:</p>
+                        <p class="font-semibold text-red-600">{{ formatPrice(currentRegister?.totalexpenses || 0) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Esperado:</p>
+                        <p class="font-semibold text-blue-600">{{ formatPrice((currentRegister?.openingamount || 0) + (currentRegister?.cashsales || 0) - (currentRegister?.totalexpenses || 0)) }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Monto Real en Caja (Efectivo)</label>
+                <input 
+                    type="number"
+                    [(ngModel)]="closingAmount"
+                    placeholder="0"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notas (Opcional)</label>
+                <textarea 
+                    [(ngModel)]="closingNotes"
+                    rows="3"
+                    placeholder="Observaciones sobre el cierre..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button 
+                    (click)="showCloseModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    (click)="closeRegister()"
+                    class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 font-semibold">
+                    Cerrar Caja
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Registrar Movimiento -->
+<div *ngIf="showTransactionModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" (click)="showTransactionModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 text-white">
+            <h3 class="text-xl font-bold">Registrar Movimiento</h3>
+        </div>
+        <div class="p-6">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Movimiento</label>
+                <select 
+                    [(ngModel)]="transactionType"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="retiro">Retiro / Gasto</option>
+                    <option value="ingreso">Ingreso Extra</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Monto</label>
+                <input 
+                    type="number"
+                    [(ngModel)]="transactionAmount"
+                    placeholder="0"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <textarea 
+                    [(ngModel)]="transactionDescription"
+                    rows="3"
+                    placeholder="Ej: Pago de servicios, compra de insumos..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button 
+                    (click)="showTransactionModal = false"
+                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                    Cancelar
+                </button>
+                <button 
+                    (click)="addTransaction()"
+                    class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-semibold">
+                    Registrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ver Detalles -->
+<div *ngIf="showDetailModal && selectedRegister" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showDetailModal = false">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4 text-white sticky top-0">
+            <h3 class="text-xl font-bold">Detalles de Caja - {{ selectedRegister.id }}</h3>
+        </div>
+        <div class="p-6">
+            <!-- Información general -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">Abierta por</p>
+                    <p class="font-semibold">{{ selectedRegister.openedby }}</p>
+                    <p class="text-xs text-gray-500">{{ formatDate(selectedRegister.openingdate) }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4" *ngIf="selectedRegister.closedby">
+                    <p class="text-sm text-gray-600 mb-1">Cerrada por</p>
+                    <p class="font-semibold">{{ selectedRegister.closedby }}</p>
+                    <p class="text-xs text-gray-500">{{ formatDate(selectedRegister.closingdate!) }}</p>
+                </div>
+            </div>
+
+            <!-- Montos -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <h4 class="font-semibold text-gray-700 mb-3">Resumen Financiero</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Monto Inicial</p>
+                        <p class="text-lg font-semibold">{{ formatPrice(selectedRegister.openingamount) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Monto Final</p>
+                        <p class="text-lg font-semibold">{{ selectedRegister.closingamount ? formatPrice(selectedRegister.closingamount) : '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Total Ventas</p>
+                        <p class="text-lg font-semibold text-green-600">{{ formatPrice(selectedRegister.totalsales) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Monto Esperado</p>
+                        <p class="text-lg font-semibold">{{ selectedRegister.expectedamount ? formatPrice(selectedRegister.expectedamount) : '-' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas por método de pago -->
+            <div class="bg-green-50 rounded-lg p-4 mb-6">
+                <h4 class="font-semibold text-gray-700 mb-3">Ventas por Método de Pago</h4>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Efectivo</p>
+                        <p class="text-lg font-semibold text-green-600">{{ formatPrice(selectedRegister.cashsales) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Tarjeta</p>
+                        <p class="text-lg font-semibold text-blue-600">{{ formatPrice(selectedRegister.cardsales) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Transferencia</p>
+                        <p class="text-lg font-semibold text-purple-600">{{ formatPrice(selectedRegister.transfersales) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diferencia -->
+            <div *ngIf="selectedRegister.difference !== undefined" class="rounded-lg p-4 mb-6"
+                 [class]="selectedRegister.difference >= 0 ? 'bg-green-50' : 'bg-red-50'">
+                <h4 class="font-semibold text-gray-700 mb-2">Diferencia</h4>
+                <p class="text-2xl font-bold" [class]="selectedRegister.difference >= 0 ? 'text-green-600' : 'text-red-600'">
+                    {{ formatPrice(selectedRegister.difference) }}
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    {{ selectedRegister.difference >= 0 ? 'Sobrante en caja' : 'Faltante en caja' }}
+                </p>
+            </div>
+
+            <!-- Notas -->
+            <div *ngIf="selectedRegister.notes" class="bg-yellow-50 rounded-lg p-4 mb-6">
+                <h4 class="font-semibold text-gray-700 mb-2">Notas</h4>
+                <p class="text-sm text-gray-700">{{ selectedRegister.notes }}</p>
+            </div>
+
+            <button 
+                (click)="showDetailModal = false"
+                class="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>

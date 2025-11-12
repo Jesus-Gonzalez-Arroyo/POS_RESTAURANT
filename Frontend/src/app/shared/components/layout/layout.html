@@ -1,0 +1,16 @@
+<div>
+    <header class="h-15 bg-blue-400 text-white flex items-center px-4">
+        <div class="flex items-center space-x-4">
+            <div (click)="openSidebar()" class="cursor-pointer">
+                <mat-icon aria-hidden="false"  fontIcon="menu"></mat-icon>
+            </div>
+            <p>Pos Restaurant</p>
+        </div>
+    </header>
+    <main class="bg-gray-100">
+        <div class="p-7 h-[calc(100vh-60px)] overflow-auto">
+            <router-outlet></router-outlet>
+        </div>
+    </main>
+    <app-sidebar></app-sidebar>
+</div>

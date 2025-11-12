@@ -1,0 +1,464 @@
+<div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+    <!-- Header con título y estadísticas -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-gray-700 text-2xl font-bold">Contabilidad de Ventas</h2>
+                <p class="text-gray-500 text-sm mt-1">Registro detallado de todas las transacciones</p>
+            </div>
+            <button
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg">
+                <i class="fas fa-file-export"></i>
+                Exportar
+            </button>
+        </div>
+
+        <!-- Tarjetas de estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-blue-100 text-sm font-medium">Total Ventas</p>
+                        <p class="text-3xl font-bold mt-1">${{ formatPrice(totalSalesAmount) }}</p>
+                        <p class="text-blue-100 text-xs mt-2">{{ filteredSales.length }} transacciones</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-dollar-sign text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100 text-sm font-medium">Ganancias Totales</p>
+                        <p class="text-3xl font-bold mt-1">${{ formatPrice(totalProfits) }}</p>
+                        <p class="text-green-100 text-xs mt-2">Margen de beneficio</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-chart-line text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-5 text-white shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100 text-sm font-medium">Promedio por Venta</p>
+                        <p class="text-3xl font-bold mt-1">${{ formatPrice(averageSaleAmount) }}</p>
+                        <p class="text-purple-100 text-xs mt-2">Ticket promedio</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-receipt text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de filtros -->
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Búsqueda por cliente -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Buscar Cliente
+                    </label>
+                    <input 
+                        type="text"
+                        [(ngModel)]="searchTerm"
+                        (ngModelChange)="applyFilters()"
+                        placeholder="Nombre del cliente..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all focus:scale-105">
+                </div>
+
+                <!-- Filtro por método de pago -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Método de Pago
+                    </label>
+                    <select 
+                        [(ngModel)]="selectedPaymentMethod"
+                        (ngModelChange)="applyFilters()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all focus:scale-105">
+                        <option value="">Todos</option>
+                        <option *ngFor="let method of paymentMethods" [value]="method">
+                            {{ method | titlecase }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Fecha inicio -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha Inicio
+                    </label>
+                    <input 
+                        type="date"
+                        [(ngModel)]="startDate"
+                        (ngModelChange)="applyFilters()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all focus:scale-105">
+                </div>
+
+                <!-- Fecha fin -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha Fin
+                    </label>
+                    <input 
+                        type="date"
+                        [(ngModel)]="endDate"
+                        (ngModelChange)="applyFilters()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all focus:scale-105">
+                </div>
+
+                <!-- Botón limpiar filtros -->
+                <div class="flex items-end">
+                    <button 
+                        (click)="clearFilters()"
+                        class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center justify-center gap-2">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de ventas -->
+    <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                        (click)="changeSortBy('customer')">
+                        <div class="flex items-center gap-2">
+                            Cliente
+                            <svg class="w-3 h-3 transition-transform duration-300" [class.text-blue-600]="sortBy === 'customer'" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"/>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Productos
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Método de Pago
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                        (click)="changeSortBy('total')">
+                        <div class="flex items-center gap-2">
+                            Total Venta
+                            <svg class="w-3 h-3 transition-transform duration-300" [class.text-blue-600]="sortBy === 'total'" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"/>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                        (click)="changeSortBy('ganancias')">
+                        <div class="flex items-center gap-2">
+                            Ganancias
+                            <svg class="w-3 h-3 transition-transform duration-300" [class.text-blue-600]="sortBy === 'ganancias'" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"/>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                        (click)="changeSortBy('date')">
+                        <div class="flex items-center gap-2">
+                            Fecha
+                            <svg class="w-3 h-3 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"/>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let sale of paginatedSales; let i = index" 
+                    class="hover:bg-blue-50 transition-all duration-200 hover:shadow-md"
+                    [class.bg-gray-50]="i % 2 === 0">
+                    <!-- Cliente -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-11 w-11 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                                <span class="text-white font-bold text-lg">{{ getInitial(sale.customer) }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-semibold text-gray-900">{{ sale.customer }}</div>
+                                <div class="text-xs text-gray-500">
+                                    {{ getTotalProducts(sale.products) }} productos
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Productos -->
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ getFirstProduct(sale.products).name }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Cantidad: {{ getFirstProduct(sale.products).quantity }}
+                                </div>
+                            </div>
+                            <button 
+                                *ngIf="sale.products.length > 1"
+                                (click)="showProductDetails(sale.products)"
+                                class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium hover:bg-blue-200 hover:scale-110 transition-all duration-200">
+                                +{{ sale.products.length - 1 }} más
+                            </button>
+                        </div>
+                    </td>
+
+                    <!-- Método de Pago -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm"
+                            [ngClass]="{
+                                'bg-gradient-to-r from-green-100 to-green-200 text-green-800': sale.paymentmethod === 'efectivo',
+                                'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800': sale.paymentmethod === 'transferencia',
+                                'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800': sale.paymentmethod === 'tarjeta'
+                            }">
+                            {{ sale.paymentmethod | titlecase }}
+                        </span>
+                    </td>
+
+                    <!-- Total -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-bold text-gray-900">
+                            ${{ formatPrice(sale.total) }}
+                        </div>
+                    </td>
+
+                    <!-- Ganancias -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <i class="fas fa-arrow-up text-green-500 mr-2"></i>
+                            <span class="text-sm font-bold text-green-600">
+                                ${{ formatPrice(sale.ganancias) }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Fecha -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 font-medium">
+                            {{ sale.time | date:'dd/MM/yyyy' }}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <i class="far fa-clock mr-1"></i>
+                            {{ sale.time | date:'HH:mm' }}
+                        </div>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button 
+                                (click)="showProductDetails(sale.products)"
+                                class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200" 
+                                title="Ver detalles">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                            <button 
+                                (click)="printSale(sale)"
+                                class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200" 
+                                title="Imprimir factura">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Estado de carga -->
+                <tr *ngIf="loading">
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-3"></i>
+                            <p class="text-gray-500 font-medium">Cargando ventas...</p>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Sin resultados -->
+                <tr *ngIf="!loading && !error && paginatedSales.length === 0">
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 font-medium text-lg">No se encontraron ventas</p>
+                            <p class="text-gray-400 text-sm mt-2">Intenta ajustar los filtros de búsqueda</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer con paginación -->
+    <div class="py-4 flex items-center justify-between border-t border-gray-200 mt-4 bg-gray-50 px-4 rounded-b-lg">
+        <div class="flex-1 flex justify-between sm:hidden">
+            <button 
+                (click)="previousPage()"
+                [disabled]="currentPage === 1"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Anterior
+            </button>
+            <button 
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Siguiente
+            </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div class="flex items-center gap-4">
+                <p class="text-sm text-gray-700 font-medium">
+                    Mostrando 
+                    <span class="font-bold text-blue-600">{{ ((currentPage - 1) * itemsPerPage) + 1 }}</span> 
+                    a 
+                    <span class="font-bold text-blue-600">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> 
+                    de 
+                    <span class="font-bold text-blue-600">{{ totalItems }}</span> resultados
+                </p>
+                
+                <!-- Selector de elementos por página -->
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700">Mostrar:</label>
+                    <select 
+                        [(ngModel)]="itemsPerPage" 
+                        (change)="changeItemsPerPage()"
+                        class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <span class="text-sm text-gray-700">por página</span>
+                </div>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <!-- Botón Anterior -->
+                    <button 
+                        (click)="previousPage()" 
+                        [disabled]="currentPage === 1"
+                        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Anterior</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Números de página -->
+                    <button 
+                        *ngFor="let page of pages" 
+                        (click)="goToPage(page)"
+                        [class]="'relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ' + 
+                                (currentPage === page 
+                                 ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600' 
+                                 : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50')">
+                        {{ page }}
+                    </button>
+                    
+                    <!-- Botón Siguiente -->
+                    <button 
+                        (click)="nextPage()" 
+                        [disabled]="currentPage === totalPages"
+                        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Siguiente</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalles de productos -->
+    <div 
+        *ngIf="selectedSaleProducts"
+        class="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300"
+        (click)="closeProductDetails()">
+        <div 
+            class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-in slide-in-from-top-4 duration-300"
+            (click)="$event.stopPropagation()">
+            <!-- Header del modal -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white bg-opacity-20 rounded-full p-2">
+                        <i class="fas fa-shopping-cart text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Detalles de Productos</h3>
+                        <p class="text-blue-100 text-sm">{{ selectedSaleProducts.length }} productos en esta venta</p>
+                    </div>
+                </div>
+                <button 
+                    (click)="closeProductDetails()"
+                    class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Contenido del modal -->
+            <div class="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+                <div class="space-y-3">
+                    <div 
+                        *ngFor="let product of selectedSaleProducts; let i = index"
+                        class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200 border border-gray-200">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center">
+                                <span class="text-blue-600 font-bold">{{ i + 1 }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-lg">{{ product.name }}</h4>
+                                <p class="text-sm text-gray-500">
+                                    <i class="fas fa-box mr-1"></i>
+                                    Cantidad: <span class="font-medium text-gray-700">{{ product.quantity }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500 mb-1">Precio Unitario</p>
+                            <p class="text-lg font-bold text-gray-900">
+                                ${{ formatPrice(product.price || 0) }}
+                            </p>
+                            <p class="text-xs text-blue-600 font-medium mt-1">
+                                Total: ${{ formatPrice((product.price || 0) * product.quantity) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totales -->
+                <div class="mt-6 pt-4 border-t-2 border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-600 text-sm">Total de productos</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ getTotalProducts(selectedSaleProducts) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <button 
+                    (click)="closeProductDetails()"
+                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
