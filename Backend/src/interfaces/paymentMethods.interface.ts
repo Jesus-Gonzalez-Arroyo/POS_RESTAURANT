@@ -2,9 +2,9 @@ export interface PaymentMethod {
   id: number;
   name: string;
   description?: string;
-  isActive: boolean;
+  is_active: boolean;
   color: string;
   icon: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }

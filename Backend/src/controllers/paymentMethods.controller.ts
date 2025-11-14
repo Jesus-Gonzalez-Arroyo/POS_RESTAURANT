@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { getPaymentMethods, addPaymentMethod, updatePaymentMethod, deletePaymentMethod } from '../services/paymentMethods.service';
+import { getPaymentMethods, addPaymentMethod, updatePaymentMethod, deletePaymentMethod, updateStatePaymentMethod } from '../services/paymentMethods.service';
 
 export const getAllPaymentMethods = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -34,9 +34,20 @@ export const editPaymentMethod = async (req: Request, res: Response): Promise<vo
 export const removePaymentMethod = async (req: Request, res: Response): Promise<void> => {
     try {
         const paymentMethodId = parseInt(req.params.id, 10);
-        await deletePaymentMethod(paymentMethodId);
-        res.status(204).send();
+        const result = await deletePaymentMethod(paymentMethodId);
+        res.status(204).send(result);
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete payment method' });
+    }
+}
+
+export const togglePaymentMethodState = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const paymentMethodId = parseInt(req.params.id, 10);
+        const { isActive, updatedAt } = req.body;
+        const updatedPaymentMethod = await updateStatePaymentMethod(paymentMethodId, isActive, updatedAt);
+        res.status(200).json(updatedPaymentMethod);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update payment method state' });
     }
 }

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { getCategories, addCategory, updateCategory, deleteCategory } from '../services/categories.service';
+import { getCategories, addCategory, updateCategory, deleteCategory, updateStateCategory } from '../services/categories.service';
 
 export const getAllCategories = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -38,5 +38,16 @@ export const removeCategory = async (req: Request, res: Response): Promise<void>
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete category' });
+    }
+}
+
+export const toggleCategoryState = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const categoryId = parseInt(req.params.id, 10);
+        const { isActive, updatedAt } = req.body;
+        const updatedCategory = await updateStateCategory(categoryId, isActive, updatedAt);
+        res.status(200).json(updatedCategory);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update category state' });
     }
 }
