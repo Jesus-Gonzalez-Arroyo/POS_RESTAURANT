@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 
 import { Orders } from '../../core/services/orders/orders';
 import { ProductsService } from '../../core/services/products/products.service';
-import { Product } from '../../core/models/index';
+import { Categories } from '../../core/services/categories/categories';
+import { Category, Product } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 
@@ -19,12 +20,12 @@ import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 export class Sales implements OnInit  {
 
   selectedCategory = 'Todos';
-  categories = ['Todos', 'Pollo Asado', 'Bebidas', 'Acompañamientos', 'Postres'];
+  categories: Category[] = [];
   searchTerm = '';
   
   cart: {name: string, price: number, quantity: number, total: number}[] = [];
   
-  // Datos del cliente y orden
+  // Datos del cliente and order
   customerName = '';
   isDelivery = false;
   deliveryAddress = '';
@@ -40,21 +41,37 @@ export class Sales implements OnInit  {
   constructor(
     private ordersService: Orders,
     private router: Router,
-    @Inject(ProductsService) private productsService: ProductsService
+    @Inject(ProductsService) private productsService: ProductsService,
+    private categoriesService: Categories
   ) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadCategories();
   }
 
   loadProducts() {
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
         this.allProducts = products;
+        this.loadCategories();
       },
       error: (error: any) => {
         Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
         console.error('Error loading products:', error);
+      }
+    });
+  }
+
+  loadCategories() {
+    this.categoriesService.getCategories().subscribe({
+      next: (categories: any) => {
+        const categoryArray = categories as Category[];
+        this.categories = [...categoryArray];
+      },
+      error: (error: any) => {
+        Alert('Error', 'No se pudieron cargar las categorías. Intente nuevamente más tarde.', 'error');
+        console.error('Error loading categories:', error);
       }
     });
   }

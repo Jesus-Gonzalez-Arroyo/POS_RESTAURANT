@@ -15,12 +15,20 @@
         <!-- Botones de categorías -->
         <div class="mb-6">
             <div class="flex flex-wrap gap-2">
-                <button *ngFor="let category of categories" (click)="selectCategory(category)" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
-                             (selectedCategory === category 
+                <button (click)="selectCategory('Todos')" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
+                             (selectedCategory === 'Todos'
                               ? 'bg-blue-500 text-white' 
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300')">
-                    {{ category }}
+                    Todos
                 </button>
+                <div *ngFor="let category of categories">
+                    <button *ngIf="category.is_active" (click)="selectCategory(category.name)" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
+                             (selectedCategory === category.name
+                              ? 'bg-blue-500 text-white' 
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300')">
+                        {{ category.name }}
+                    </button>
+                </div>
             </div>
         </div>
 
