@@ -10,6 +10,7 @@ import errorHandler from './middlewares/error.middleware'
 import router_bills from './routes/bills.route';
 import router_categories from './routes/categories.route';
 import router_paymentMethods from './routes/paymentMethods.route';
+import router_dashboard from './routes/dashboard.route';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/v1/box', router_box);
 app.use('/api/v1/bills', router_bills);
 app.use('/api/v1/categories', router_categories);
 app.use('/api/v1/paymentMethods', router_paymentMethods);
+app.use('/api/v1/dashboard', router_dashboard);
 
 app.use(errorHandler);
 
