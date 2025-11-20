@@ -6,9 +6,10 @@ import { Router } from '@angular/router';
 import { Orders } from '../../core/services/orders/orders';
 import { ProductsService } from '../../core/services/products/products.service';
 import { Categories } from '../../core/services/categories/categories';
-import { Category, Product } from '../../core/models/index';
+import { Category, PaymentMethod, Product } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
+import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
 
 @Component({
   selector: 'app-sales',
@@ -30,11 +31,8 @@ export class Sales implements OnInit  {
   isDelivery = false;
   deliveryAddress = '';
   paymentMethod = 'efectivo';
-  paymentMethods = [
-    {value: 'efectivo', label: 'Efectivo'},
-    {value: 'tarjeta', label: 'Tarjeta'},
-    {value: 'transferencia', label: 'Transferencia'}
-  ];
+  paymentMethods: { value: string, label: string }[] = [];
+  change: number | null = null;
   
   allProducts = [] as Product[];
 
@@ -42,19 +40,20 @@ export class Sales implements OnInit  {
     private ordersService: Orders,
     private router: Router,
     @Inject(ProductsService) private productsService: ProductsService,
-    private categoriesService: Categories
+    private categoriesService: Categories,
+    private paymentsService: PaymenthMethods
   ) {}
 
   ngOnInit(): void {
     this.loadProducts();
     this.loadCategories();
+    this.loadPaymentMethods();
   }
 
   loadProducts() {
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
         this.allProducts = products;
-        this.loadCategories();
       },
       error: (error: any) => {
         Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
@@ -72,6 +71,19 @@ export class Sales implements OnInit  {
       error: (error: any) => {
         Alert('Error', 'No se pudieron cargar las categorías. Intente nuevamente más tarde.', 'error');
         console.error('Error loading categories:', error);
+      }
+    });
+  }
+
+  loadPaymentMethods() {
+    this.paymentsService.getPaymentMethods().subscribe({
+      next: (methods: any) => {
+        const methodsArray = methods as PaymentMethod[];
+        this.paymentMethods = methodsArray.map(method => ({ value: method.name, label: method.name }));
+      },
+      error: (error: any) => {
+        Alert('Error', 'No se pudieron cargar los métodos de pago. Intente nuevamente más tarde.', 'error');
+        console.error('Error loading payment methods:', error);
       }
     });
   }
@@ -171,6 +183,7 @@ export class Sales implements OnInit  {
     this.deliveryAddress = '';
     this.paymentMethod = 'efectivo';
     this.cart = [];
+    this.change = null;
   }
 
   addCartProduct(product: {name: string, price: number}) {

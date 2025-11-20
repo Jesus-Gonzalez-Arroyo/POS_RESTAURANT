@@ -254,4 +254,24 @@ export class Accounting implements OnInit {
     const receiptHtml = generateSaleReceipt(sale);
     printDocument(receiptHtml);
   }
+
+  // Obtener clases CSS para el método de pago
+  getPaymentMethodClass(paymentMethod: string): string {
+    const method = paymentMethod.toLowerCase();
+    
+    const classGroups: Record<string, string[]> = {
+      'bg-gradient-to-r from-green-100 to-green-200 text-green-800': ['efectivo'],
+      'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800': ['transferencia', 'qr'],
+      'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800': ['tarjeta', 'tarjeta de debito', 'debito'],
+      'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800': ['credito', 'tarjeta de credito', 'tarjeta credito']
+    };
+
+    for (const [cssClass, methods] of Object.entries(classGroups)) {
+      if (methods.includes(method)) {
+        return cssClass;
+      }
+    }
+
+    return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800';
+  }
 }
