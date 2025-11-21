@@ -185,6 +185,7 @@ export class Products implements OnInit {
   confirmDeleteProduct(id: number) {
     this.productsService.deleteProduct(id).subscribe({
       next: () => {
+        Alert('Éxito', 'Producto eliminado correctamente', 'success');
         this.allProducts = this.allProducts.filter(product => product.id !== id);
         this.loading = false;
       },
@@ -300,6 +301,7 @@ export class Products implements OnInit {
 
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
+          Alert('Éxito', 'Producto agregado correctamente', 'success');
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
@@ -327,6 +329,7 @@ export class Products implements OnInit {
       
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
         next: (response) => {
+          Alert('Éxito', 'Producto actualizado correctamente', 'success');
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
