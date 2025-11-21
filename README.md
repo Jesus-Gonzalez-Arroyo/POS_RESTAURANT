@@ -10,10 +10,8 @@ Sistema de Punto de Venta (POS) para restaurantes desarrollado con Angular y Nod
 - [Instalación](#-instalación)
 - [Configuración](#-configuración)
 - [Ejecución](#-ejecución)
-- [Scripts de Migración](#-scripts-de-migración)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [API Endpoints](#-api-endpoints)
-- [Contribución](#-contribución)
 
 ## ✨ Características
 
@@ -129,13 +127,6 @@ JWT_SECRET=tu_secret_key_super_segura
 CREATE DATABASE pos_restaurant;
 ```
 
-3. Ejecutar las migraciones (si es necesario):
-
-```bash
-npm run migrate:sales
-npm run migrate:categories
-```
-
 ### Frontend
 
 El frontend se conecta al backend por defecto en `http://localhost:3000`. Si necesitas cambiar la URL, edita los servicios en `Frontend/src/app/core/services/`.
@@ -157,6 +148,37 @@ cd Frontend
 npm start
 ```
 La aplicación estará disponible en `http://localhost:4200`
+
+### Docker (Backend)
+
+**1. Construir la imagen Docker:**
+```bash
+cd Backend
+docker build -t api_restaurant .
+```
+
+**2. Ejecutar el contenedor con archivo .env:**
+```bash
+docker run -d -p 3000:3000 --name restaurant-container --env-file .env api_restaurant
+```
+
+**3. Verificar que el contenedor está corriendo:**
+```bash
+docker ps
+```
+
+**4. Ver logs del contenedor:**
+```bash
+docker logs restaurant-container
+```
+
+**5. Detener y eliminar el contenedor:**
+```bash
+docker stop restaurant-container
+docker rm restaurant-container
+```
+
+> **Nota:** Asegúrate de que tu archivo `.env` tenga `DB_HOST=host.docker.internal` en lugar de `localhost` para que el contenedor pueda conectarse a PostgreSQL corriendo en tu máquina host.
 
 ### Producción
 
@@ -272,14 +294,6 @@ Pos_restaurant/
 ### Dashboard
 - `GET /api/dashboard` - Obtener estadísticas del dashboard
 
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
 ## 📝 Licencia
 
 Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
@@ -288,14 +302,3 @@ Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
 
 **Jesus Gonzalez Arroyo**
 - GitHub: [@Jesus-Gonzalez-Arroyo](https://github.com/Jesus-Gonzalez-Arroyo)
-
-## 🙏 Agradecimientos
-
-- Angular Team
-- Node.js Community
-- PostgreSQL Team
-- Tailwind CSS Team
-
----
-
-⭐ Si este proyecto te fue útil, considera darle una estrella en GitHub!
