@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-// Configuración para Railway (DATABASE_URL) o conexión tradicional
 const pool = new Pool(
   process.env.DATABASE_URL
     ? {
@@ -22,12 +21,7 @@ const pool = new Pool(
 )
 
 pool.on('connect', () => {
-  console.log('✅ Connected to the database')
-})
-
-pool.on('error', (err) => {
-  console.error('❌ Unexpected error on idle client', err)
-  process.exit(-1)
+  console.log('Connected to the database')
 })
 
 export default pool
