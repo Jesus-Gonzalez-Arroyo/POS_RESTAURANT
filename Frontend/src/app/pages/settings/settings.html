@@ -59,8 +59,8 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (category.isActive ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
-                                {{ category.isActive ? 'Activa' : 'Inactiva' }}
+                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (category.is_active ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
+                                {{ category.is_active ? 'Activa' : 'Inactiva' }}
                             </span>
                         </div>
                     </div>
@@ -69,8 +69,8 @@
                 <!-- Body de la tarjeta -->
                 <div class="p-4">
                     <div class="text-xs text-gray-500 mb-4">
-                        <p>Creada: {{ formatDate(category.createdAt) }}</p>
-                        <p>Actualizada: {{ formatDate(category.updatedAt) }}</p>
+                        <p>Creada: {{ formatDate(category.created_at) }}</p>
+                        <p>Actualizada: {{ formatDate(category.updated_at) }}</p>
                     </div>
 
                     <!-- Acciones -->
@@ -86,8 +86,8 @@
                         </button>
                         <button 
                             (click)="toggleCategoryStatus(category)"
-                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (category.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
-                            {{ category.isActive ? 'Desactivar' : 'Activar' }}
+                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (category.is_active ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
+                            {{ category.is_active ? 'Desactivar' : 'Activar' }}
                         </button>
                         <button 
                             (click)="deleteCategory(category.id)"
@@ -145,8 +145,8 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (payment.isActive ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
-                                {{ payment.isActive ? 'Activo' : 'Inactivo' }}
+                            <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + (payment.is_active ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20')">
+                                {{ payment.is_active ? 'Activo' : 'Inactivo' }}
                             </span>
                         </div>
                     </div>
@@ -155,8 +155,8 @@
                 <!-- Body de la tarjeta -->
                 <div class="p-4">
                     <div class="text-xs text-gray-500 mb-4">
-                        <p>Creado: {{ formatDate(payment.createdAt) }}</p>
-                        <p>Actualizado: {{ formatDate(payment.updatedAt) }}</p>
+                        <p>Creado: {{ formatDate(payment.created_at) }}</p>
+                        <p>Actualizado: {{ formatDate(payment.updated_at) }}</p>
                     </div>
 
                     <!-- Acciones -->
@@ -172,8 +172,8 @@
                         </button>
                         <button 
                             (click)="togglePaymentStatus(payment)"
-                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (payment.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
-                            {{ payment.isActive ? 'Desactivar' : 'Activar' }}
+                            [class]="'px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium ' + (payment.is_active ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')">
+                            {{ payment.is_active ? 'Desactivar' : 'Activar' }}
                         </button>
                         <button 
                             (click)="deletePaymentMethod(payment.id)"
@@ -279,7 +279,7 @@
             <div class="flex items-center">
                 <input 
                     type="checkbox"
-                    [(ngModel)]="newCategory.isActive"
+                    [(ngModel)]="newCategory.is_active"
                     name="isActive"
                     id="categoryActive"
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
@@ -387,7 +387,7 @@
             <div class="flex items-center">
                 <input 
                     type="checkbox"
-                    [(ngModel)]="newPaymentMethod.isActive"
+                    [(ngModel)]="newPaymentMethod.is_active"
                     name="isActive"
                     id="paymentActive"
                     class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">

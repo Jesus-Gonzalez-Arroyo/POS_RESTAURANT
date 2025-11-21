@@ -7,6 +7,7 @@ import {
   UrlTree
 } from '@angular/router';
 import { Observable } from 'rxjs';
+import { Alert } from '../../../shared/utils/alert';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,7 @@ export class AuthGuard implements CanActivate {
 
     const token = localStorage.getItem('token');
     if (!token) {
+      Alert('Acceso denegado', 'Debes iniciar sesión para acceder a esta página.', 'warning');
       return this.router.parseUrl('/');
     }
 
@@ -30,6 +32,7 @@ export class AuthGuard implements CanActivate {
     const userRole = user?.role;
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
+      Alert('Acceso denegado', 'No tienes permisos para acceder a esta página.', 'error');
       return this.router.parseUrl('/');
     }
 

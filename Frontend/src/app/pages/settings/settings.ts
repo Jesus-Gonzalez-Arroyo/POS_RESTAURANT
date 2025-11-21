@@ -1,29 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import { Category, PaymentMethod } from '../../core/models/settings.interface';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
-
-interface Category {
-  id: number;
-  name: string;
-  description?: string;
-  color: string;
-  icon: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface PaymentMethod {
-  id: number;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  color: string;
-  icon: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { formatDate } from '../../shared/utils/formartDate';
+import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
+import { Categories as CategoriesService } from '../../core/services/categories/categories';
 
 @Component({
   selector: 'app-categories',
@@ -33,6 +16,8 @@ interface PaymentMethod {
   standalone: true
 })
 export class Categories implements OnInit {
+
+  constructor(private categoriesService: CategoriesService, private paymentMethodsService: PaymenthMethods) {}
   
   // Estado de la interfaz
   activeTab: 'categories' | 'payments' = 'categories';
@@ -53,7 +38,7 @@ export class Categories implements OnInit {
     description: '',
     color: 'bg-blue-500',
     icon: 'fa-tag',
-    isActive: true
+    is_active: true
   };
   
   newPaymentMethod: Partial<PaymentMethod> = {
@@ -61,7 +46,7 @@ export class Categories implements OnInit {
     description: '',
     color: 'bg-green-500',
     icon: 'fa-money-bill',
-    isActive: true
+    is_active: true
   };
   
   // Opciones para seleccionar
@@ -98,39 +83,15 @@ export class Categories implements OnInit {
 
   // CATEGORÍAS
   loadCategories() {
-    // TODO: Cargar desde el backend
-    this.categories = [
-      {
-        id: 1,
-        name: 'Bebidas',
-        description: 'Refrescos, jugos y bebidas calientes',
-        color: 'bg-blue-500',
-        icon: 'fa-wine-glass',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
+    this.categoriesService.getCategories().subscribe({
+      next: (data) => {
+        this.categories = data as Category[];
       },
-      {
-        id: 2,
-        name: 'Comidas',
-        description: 'Platos principales y acompañamientos',
-        color: 'bg-green-500',
-        icon: 'fa-utensils',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
-      },
-      {
-        id: 3,
-        name: 'Postres',
-        description: 'Dulces y postres variados',
-        color: 'bg-pink-500',
-        icon: 'fa-ice-cream',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
+      error: (err) => {
+        console.error('Error al cargar categorías:', err);
+        Alert('Error', 'No se pudieron cargar las categorías', 'error');
       }
-    ];
+    });
   }
 
   openCategoryModal(category?: Category) {
@@ -144,7 +105,7 @@ export class Categories implements OnInit {
         description: '',
         color: 'bg-blue-500',
         icon: 'fa-tag',
-        isActive: true
+        is_active: true
       };
     }
     this.showCategoryModal = true;
@@ -166,20 +127,38 @@ export class Categories implements OnInit {
           updatedAt: new Date()
         } as Category;
       }
-      Alert('Completado', 'Categoría actualizada exitosamente', 'success');
+
+      this.categoriesService.updateCategory(this.categories[index].id, this.categories[index]).subscribe({
+        next: () => {
+          Alert('Completado', 'Categoría actualizada exitosamente', 'success');
+        },
+        error: (err) => {
+          console.error('Error al actualizar categoría:', err);
+          Alert('Error', 'No se pudo actualizar la categoría', 'error');
+        }
+      });
     } else {
       // Crear nueva categoría
-      const newCat: Category = {
-        id: this.categories.length + 1,
+      const newCat: Omit<Category, 'id'> = {
         name: this.newCategory.name!,
         description: this.newCategory.description,
         color: this.newCategory.color!,
         icon: this.newCategory.icon!,
-        isActive: this.newCategory.isActive!,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        is_active: this.newCategory.is_active!,
+        created_at: new Date(),
+        updated_at: new Date()
       };
-      this.categories.push(newCat);
+
+      this.categoriesService.createCategory(newCat).subscribe({
+        next: () => {
+          Alert('Completado', 'Categoría creada exitosamente', 'success');
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('Error al crear categoría:', err);
+          Alert('Error', 'No se pudo crear la categoría', 'error');
+        }
+      });
       Alert('Completado', 'Categoría creada exitosamente', 'success');
     }
 
@@ -187,9 +166,18 @@ export class Categories implements OnInit {
   }
 
   toggleCategoryStatus(category: Category) {
-    category.isActive = !category.isActive;
-    category.updatedAt = new Date();
-    Alert('Completado', `Categoría ${category.isActive ? 'activada' : 'desactivada'}`, 'success');
+    category.is_active = !category.is_active;
+    category.updated_at = new Date();
+
+    this.categoriesService.toggleCategoryState(category.id, category.is_active, category.updated_at).subscribe({
+      next: () => {
+        Alert('Completado', `Categoría ${category.is_active ? 'activada' : 'desactivada'}`, 'success');
+      },
+      error: (err) => {
+        console.error('Error al actualizar estado de categoría:', err);
+        Alert('Error', 'No se pudo actualizar el estado de la categoría', 'error');
+      }
+    });
   }
 
   deleteCategory(id: number) {
@@ -199,47 +187,31 @@ export class Categories implements OnInit {
       btnAccept: 'Sí, eliminar' 
     }).then((confirmed) => {
       if (confirmed) {
-        this.categories = this.categories.filter(c => c.id !== id);
-        Alert('Completado', 'Categoría eliminada exitosamente', 'success');
+        this.categoriesService.deleteCategory(id).subscribe({
+          next: () => {
+            Alert('Completado', 'Categoría eliminada exitosamente', 'success');
+            this.loadCategories();
+          },
+          error: (err) => {
+            console.error('Error al eliminar categoría:', err);
+            Alert('Error', 'No se pudo eliminar la categoría', 'error');
+          }
+        });
       }
     });
   }
 
   // MÉTODOS DE PAGO
   loadPaymentMethods() {
-    // TODO: Cargar desde el backend
-    this.paymentMethods = [
-      {
-        id: 1,
-        name: 'Efectivo',
-        description: 'Pago en efectivo',
-        color: 'bg-green-500',
-        icon: 'fa-money-bill',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
+    this.paymentMethodsService.getPaymentMethods().subscribe({
+      next: (data) => {
+        this.paymentMethods = data as PaymentMethod[];
       },
-      {
-        id: 2,
-        name: 'Tarjeta',
-        description: 'Pago con tarjeta de crédito o débito',
-        color: 'bg-blue-500',
-        icon: 'fa-credit-card',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
-      },
-      {
-        id: 3,
-        name: 'Transferencia',
-        description: 'Transferencia bancaria o digital',
-        color: 'bg-purple-500',
-        icon: 'fa-university',
-        isActive: true,
-        createdAt: new Date('2025-01-01'),
-        updatedAt: new Date('2025-01-01')
+      error: (err) => {
+        console.error('Error al cargar métodos de pago:', err);
+        Alert('Error', 'No se pudieron cargar los métodos de pago', 'error');
       }
-    ];
+    });
   }
 
   openPaymentModal(payment?: PaymentMethod) {
@@ -253,7 +225,7 @@ export class Categories implements OnInit {
         description: '',
         color: 'bg-green-500',
         icon: 'fa-money-bill',
-        isActive: true
+        is_active: true
       };
     }
     this.showPaymentModal = true;
@@ -275,30 +247,56 @@ export class Categories implements OnInit {
           updatedAt: new Date()
         } as PaymentMethod;
       }
-      Alert('Completado', 'Método de pago actualizado exitosamente', 'success');
+
+      this.paymentMethodsService.updatePaymentMethod(this.paymentMethods[index].id, this.paymentMethods[index]).subscribe({
+        next: () => {
+          Alert('Completado', 'Método de pago actualizado exitosamente', 'success');
+          this.loadPaymentMethods();
+        },
+        error: (err) => {
+          console.error('Error al actualizar método de pago:', err);
+          Alert('Error', 'No se pudo actualizar el método de pago', 'error');
+        }
+      });
     } else {
       // Crear nuevo método
-      const newPayment: PaymentMethod = {
-        id: this.paymentMethods.length + 1,
+      const newPayment: Omit<PaymentMethod, 'id'> = {
         name: this.newPaymentMethod.name!,
         description: this.newPaymentMethod.description,
         color: this.newPaymentMethod.color!,
         icon: this.newPaymentMethod.icon!,
-        isActive: this.newPaymentMethod.isActive!,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        is_active: this.newPaymentMethod.is_active!,
+        created_at: new Date(),
+        updated_at: new Date()
       };
-      this.paymentMethods.push(newPayment);
-      Alert('Completado', 'Método de pago creado exitosamente', 'success');
+
+      this.paymentMethodsService.createPaymentMethod(newPayment).subscribe({
+        next: () => {
+          Alert('Completado', 'Método de pago creado exitosamente', 'success');
+          this.loadPaymentMethods();
+        },
+        error: (err) => {
+          console.error('Error al crear método de pago:', err);
+          Alert('Error', 'No se pudo crear el método de pago', 'error');
+        }
+      });
     }
 
     this.showPaymentModal = false;
   }
 
   togglePaymentStatus(payment: PaymentMethod) {
-    payment.isActive = !payment.isActive;
-    payment.updatedAt = new Date();
-    Alert('Completado', `Método de pago ${payment.isActive ? 'activado' : 'desactivado'}`, 'success');
+    payment.is_active = !payment.is_active;
+    payment.updated_at = new Date();
+    this.paymentMethodsService.togglePaymentMethodState(payment.id, payment.is_active, payment.updated_at).subscribe({
+      next: () => {
+        Alert('Completado', `Método de pago ${payment.is_active ? 'activado' : 'desactivado'}`, 'success');
+      },
+      error: (err) => {
+        console.error('Error al actualizar estado de método de pago:', err);
+        Alert('Error', 'No se pudo actualizar el estado del método de pago', 'error');
+      }
+    });
   }
 
   deletePaymentMethod(id: number) {
@@ -308,18 +306,21 @@ export class Categories implements OnInit {
       btnAccept: 'Sí, eliminar' 
     }).then((confirmed) => {
       if (confirmed) {
-        this.paymentMethods = this.paymentMethods.filter(p => p.id !== id);
-        Alert('Completado', 'Método de pago eliminado exitosamente', 'success');
+        this.paymentMethodsService.deletePaymentMethod(id).subscribe({
+          next: () => {
+            Alert('Completado', 'Método de pago eliminado exitosamente', 'success');
+            this.loadPaymentMethods();
+          },
+          error: (err) => {
+            console.error('Error al eliminar método de pago:', err);
+            Alert('Error', 'No se pudo eliminar el método de pago', 'error');
+          }
+        });
       }
     });
   }
 
-  // Utilidades
   formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatDate(date);
   }
 }

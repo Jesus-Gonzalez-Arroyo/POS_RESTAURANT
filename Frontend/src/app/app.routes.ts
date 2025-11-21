@@ -15,7 +15,7 @@ import { Categories } from './pages/settings/settings';
 export const routes: Routes = [
     { path: '', component: Login},
     { path: '', component: Layout, children: [
-        { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard], data: { roles: ["1"] } },
+        { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
         { path: 'sales', component: Sales },
         { path: 'products', component: Products },
         { path: 'orders', component: Orders },

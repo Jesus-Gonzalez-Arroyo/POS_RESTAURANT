@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
 import { ProductsService } from '../../core/services/products/products.service';
-import { Product } from '../../core/models/index';
+import { Category, Product } from '../../core/models/index';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
+import { Categories } from '../../core/services/categories/categories';
 
 @Component({
   selector: 'app-products',
@@ -21,6 +22,7 @@ export class Products implements OnInit {
   selectedAvailability = 'Todas';
   loading = false;
   error: string | null = null;
+  categoriesList: Category[] = [];
 
   newProduct = {
     name: '',
@@ -45,10 +47,11 @@ export class Products implements OnInit {
   
   allProducts: Product[] = [];
 
-  constructor(private productsService: ProductsService) {}
+  constructor(private productsService: ProductsService, private categoriesService: Categories) {}
 
   ngOnInit() {
     this.loadProducts();
+    this.loadCategories();
   }
 
   loadProducts() {
@@ -63,6 +66,19 @@ export class Products implements OnInit {
       error: (error) => {
         Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
         console.error('Error cargando productos:', error);
+      }
+    });
+  }
+
+  loadCategories() {
+    this.categoriesService.getCategories().subscribe({
+      next: (categories: any) => {
+        const categoryArray = categories as Category[];
+        this.categoriesList = [...categoryArray];
+      },
+      error: (error: any) => {
+        Alert('Error', 'No se pudieron cargar las categorías. Intente nuevamente más tarde.', 'error');
+        console.error('Error cargando categorías:', error);
       }
     });
   }
@@ -169,6 +185,7 @@ export class Products implements OnInit {
   confirmDeleteProduct(id: number) {
     this.productsService.deleteProduct(id).subscribe({
       next: () => {
+        Alert('Éxito', 'Producto eliminado correctamente', 'success');
         this.allProducts = this.allProducts.filter(product => product.id !== id);
         this.loading = false;
       },
@@ -284,6 +301,7 @@ export class Products implements OnInit {
 
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
+          Alert('Éxito', 'Producto agregado correctamente', 'success');
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
@@ -311,6 +329,7 @@ export class Products implements OnInit {
       
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
         next: (response) => {
+          Alert('Éxito', 'Producto actualizado correctamente', 'success');
           this.loadProducts();
           this.resetForm();
           this.showModal = false;
