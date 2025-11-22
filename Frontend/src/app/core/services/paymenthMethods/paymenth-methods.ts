@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { PaymentMethod } from '../../models/settings.interface';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PaymenthMethods {
   constructor(private http: HttpClient) { }
-  private baseUrl = 'http://localhost:3000/api/v1/paymentMethods';
+  private baseUrl = `${environment.apiUrl}/paymentMethods`;
 
   getPaymentMethods() {
     return this.http.get(this.baseUrl);

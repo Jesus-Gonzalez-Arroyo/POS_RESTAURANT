@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface Sale {
   customer: string
@@ -15,7 +16,7 @@ export interface Sale {
   providedIn: 'root'
 })
 export class Sales {
-  private baseUrl = 'http://localhost:3000/api/v1/sales';
+  private baseUrl = `${environment.apiUrl}/sales`;
 
   constructor(private http: HttpClient) { }
 
