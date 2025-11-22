@@ -2,11 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CashRegister, Transaction } from '../../models/index';
 
+import { environment } from '../../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class BoxRegister {
-  private baseUrl = 'http://localhost:3000/api/v1/box';
+  private baseUrl = `${environment.apiUrl}/box`;
 
   constructor(private http: HttpClient) { }
 

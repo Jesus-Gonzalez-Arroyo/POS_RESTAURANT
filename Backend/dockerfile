@@ -34,4 +34,4 @@ RUN npm install --omit=dev
 EXPOSE 3000
 
 # Comando para ejecutar la app
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]
