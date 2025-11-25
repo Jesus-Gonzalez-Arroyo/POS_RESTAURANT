@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 
 import { Dashboard as DashboardService } from '../../core/services/dashboard/dashboard';
-import { DashboardData, productsTop } from '../../core/models/index';
+import { DashboardData, Order, productsTop } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
+import { Orders as OrdersService } from '../../core/services/orders/orders';
+import { Alert } from '../../shared/utils/alert';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,14 +15,10 @@ import { formatPriceCustom } from '../../shared/utils/formatPrice';
   styleUrl: './dashboard.css',
   standalone: true
 })
-export class Dashboard {
-  constructor(private dashboardService: DashboardService) {}
+export class Dashboard implements OnInit {
+  constructor(private dashboardService: DashboardService, private ordersService: OrdersService) {}
 
-  orders = [
-    { id: 1, customer: 'John Doe', total: 99.99, status: 'Pending', pedido: 'Pollo' },
-    { id: 2, customer: 'Jane Smith', total: 149.49, status: 'Completed', pedido: 'Pizza' },
-    { id: 3, customer: 'Alice Johnson', total: 79.89, status: 'Cancelled', pedido: 'Sushi' }
-  ]
+  orders: Order[] = []
 
   productsTop: productsTop[] = []
   salesToday: DashboardData['salesToday'] = {
@@ -50,6 +48,19 @@ export class Dashboard {
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadOrders();
+  }
+
+  loadOrders() {
+    this.ordersService.getAllOrders().subscribe({
+      next: (orders: any) => {
+        this.orders = orders;
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudieron cargar las órdenes.', 'error');
+        console.error('Error loading orders:', error);
+      }
+    });
   }
 
   loadDashboardData() {
@@ -63,6 +74,7 @@ export class Dashboard {
         this.expensesMonth = dataDashboard.expensesMonth;
       },
       error: (error) => {
+        Alert('Error', 'No se pudieron cargar los datos del dashboard.', 'error');
         console.error('Error loading dashboard data:', error);
       }
     });
