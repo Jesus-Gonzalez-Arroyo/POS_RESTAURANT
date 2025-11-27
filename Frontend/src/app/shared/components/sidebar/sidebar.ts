@@ -49,6 +49,11 @@ export class Sidebar implements OnInit, OnDestroy {
         { name: 'Gastos', path: '/expenses', icon: 'expenses' },
       ]
     },
+    {
+      name: 'Usuarios',
+      path: '/users',
+      icon: 'suppliers'
+    },
     { 
       name: 'Configuración', 
       path: '/settings', 

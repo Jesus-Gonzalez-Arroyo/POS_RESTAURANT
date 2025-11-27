@@ -11,6 +11,7 @@ import { Accounting } from './pages/accounting/accounting';
 import { Bills } from './pages/bills/bills';
 import { Box } from './pages/box/box';
 import { Categories } from './pages/settings/settings';
+import { Users } from './pages/users/users';
 
 export const routes: Routes = [
     { path: '', component: Login},
@@ -22,6 +23,7 @@ export const routes: Routes = [
         { path: 'accounting', component: Accounting },
         { path: 'expenses', component: Bills },
         { path: 'cash-register', component: Box},
-        { path: 'settings', component: Categories }
+        { path: 'settings', component: Categories },
+        { path: 'users', component: Users }
     ]}
 ];
