@@ -6,6 +6,7 @@ import {
   Router,
   UrlTree
 } from '@angular/router';
+import { Location } from '@angular/common';
 import { Observable } from 'rxjs';
 import { Alert } from '../../../shared/utils/alert';
 
@@ -14,7 +15,7 @@ import { Alert } from '../../../shared/utils/alert';
 })
 export class AuthGuard implements CanActivate {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private location: Location) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -33,7 +34,10 @@ export class AuthGuard implements CanActivate {
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
       Alert('Acceso denegado', 'No tienes permisos para acceder a esta página.', 'error');
-      return this.router.parseUrl('/');
+      setTimeout(() => {
+        this.location.back();
+      }, 1000);
+      return false;
     }
 
     return true;
