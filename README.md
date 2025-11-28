@@ -162,54 +162,6 @@ docker build -t api_restaurant .
 docker run -d -p 3000:3000 --name restaurant-container --env-file .env api_restaurant
 ```
 
-**3. Verificar que el contenedor está corriendo:**
-```bash
-docker ps
-```
-
-**4. Ver logs del contenedor:**
-```bash
-docker logs restaurant-container
-```
-
-**5. Detener y eliminar el contenedor:**
-```bash
-docker stop restaurant-container
-docker rm restaurant-container
-```
-
-> **Nota:** Asegúrate de que tu archivo `.env` tenga `DB_HOST=host.docker.internal` en lugar de `localhost` para que el contenedor pueda conectarse a PostgreSQL corriendo en tu máquina host.
-
-### Producción
-
-**Backend:**
-```bash
-cd Backend
-npm run build
-npm start
-```
-
-**Frontend:**
-```bash
-cd Frontend
-npm run build
-```
-Los archivos compilados estarán en `Frontend/dist/`
-
-## 🔄 Scripts de Migración
-
-### Convertir columna products a JSONB
-```bash
-cd Backend
-npm run migrate:sales
-```
-
-### Renombrar columna update_at a updated_at
-```bash
-cd Backend
-npm run migrate:categories
-```
-
 ## 📁 Estructura del Proyecto
 
 ```
