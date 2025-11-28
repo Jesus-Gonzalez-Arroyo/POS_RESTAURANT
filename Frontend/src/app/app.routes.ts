@@ -17,13 +17,13 @@ export const routes: Routes = [
     { path: '', component: Login},
     { path: '', component: Layout, children: [
         { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
-        { path: 'sales', component: Sales },
-        { path: 'products', component: Products },
-        { path: 'orders', component: Orders },
-        { path: 'accounting', component: Accounting },
-        { path: 'expenses', component: Bills },
-        { path: 'cash-register', component: Box},
-        { path: 'settings', component: Categories },
-        { path: 'users', component: Users }
+        { path: 'sales', component: Sales, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
+        { path: 'products', component: Products, canActivate: [AuthGuard], data: { roles: ["0"] } },
+        { path: 'orders', component: Orders, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
+        { path: 'accounting', component: Accounting, canActivate: [AuthGuard], data: { roles: ["0"] } },
+        { path: 'expenses', component: Bills, canActivate: [AuthGuard], data: { roles: ["1"] } },
+        { path: 'cash-register', component: Box, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
+        { path: 'settings', component: Categories, canActivate: [AuthGuard], data: { roles: ["0"] } },
+        { path: 'users', component: Users, canActivate: [AuthGuard], data: { roles: ["0"] } }
     ]}
 ];

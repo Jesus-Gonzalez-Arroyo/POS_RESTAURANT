@@ -230,7 +230,7 @@ Pos_restaurant/
 ### Pedidos
 - `GET /api/orders` - Obtener todos los pedidos
 - `POST /api/orders` - Crear pedido
-- `PUT /api/orders/:id` - Actualizar pedido
+<!-- - `PUT /api/orders/:id` - Actualizar pedido -->
 - `DELETE /api/orders/:id` - Eliminar pedido
 
 ### Categorías
@@ -239,12 +239,24 @@ Pos_restaurant/
 - `PUT /api/categories/:id` - Actualizar categoría
 - `DELETE /api/categories/:id` - Eliminar categoría
 
+### Metodos de pago
+- `GET /api/paymentMethods` - Obtener metodos de pago
+- `POST /api/paymentMethods` - Crear metodos de pago
+- `PUT /api/paymentMethods/:id` - Actualizar metodos de pago
+- `DELETE /api/paymentMethods/:id` - Eliminar metodos de pago
+
 ### Gastos
 - `GET /api/bills` - Obtener gastos
 - `POST /api/bills` - Registrar gasto
+- `PUT /api/bills/:id` - Actualizar gasto
+- `DELETE /api/bills/:id` - Eliminar gasto
 
 ### Dashboard
 - `GET /api/dashboard` - Obtener estadísticas del dashboard
+
+### Caja registradora
+- `GET /api/box` - Obtener todos los registros
+- `POST /api/box` - Cerrar caja y guardar datos
 
 ## 📝 Licencia
 

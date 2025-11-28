@@ -5,14 +5,12 @@
             <p class="text-gray-500 text-sm mt-1">Realiza ventas de productos disponibles en el inventario.</p>
         </div>
 
-        <!-- Input de búsqueda -->
-
         <div>
             <input type="text" placeholder="Buscar productos..."
                 class="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none" [(ngModel)]="searchTerm" />
         </div>
 
-        <!-- Botones de categorías -->
+        <!-- categorías -->
         <div class="mb-6">
             <div class="flex flex-wrap gap-2">
                 <button (click)="selectCategory('Todos')" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
@@ -32,7 +30,7 @@
             </div>
         </div>
 
-        <div>
+        <div *ngIf="!isLoading">
             <div class="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mt-4">
                 <div *ngFor="let product of products">
                     <div *ngIf="product.availability" [class.w-[270px]]="products.length === 1" class="w-[1fr] bg-white p-4 rounded-lg shadow-md hover:shadow-lg cursor-pointer">
@@ -53,6 +51,26 @@
                 </div>
             </div>
         </div>
+
+        <div>
+            <div *ngIf="isLoading" class="flex flex-col justify-center items-center mt-20">
+                <div class="relative">
+                    <div class="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+                <div class="mt-6 text-center">
+                    <p class="text-gray-700 font-semibold text-lg">Cargando productos...</p>
+                    <p class="text-gray-500 text-sm mt-1">Por favor espera un momento</p>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="products.length === 0">
+            <div class="flex flex-col justify-center items-center mt-20">
+                <div class="text-4xl mb-2">📦</div>
+                <div class="text-gray-700 font-semibold text-lg">No se encontraron productos</div>
+                <div class="text-gray-500 text-sm mt-1">Intenta con otro término de búsqueda o categoría</div>
+            </div>
+        </div>
     </div>
     <div class="w-[30%] relative">
         <div class="p-7 bg-white rounded-lg shadow h-[calc(100vh-7.5rem)] overflow-y-auto">
@@ -61,7 +79,6 @@
             </div>
 
             <div class="overflow-y-auto mb-30">
-                <!-- Tabla de productos -->
                 <div class="mb-6">
                     <table class="min-w-full bg-white">
                         <thead>
@@ -114,7 +131,7 @@
                                     </button>
                                 </td>
                             </tr>
-                            <!-- Mensaje cuando el carrito está vacío -->
+
                             <tr *ngIf="cart.length === 0">
                                 <td colspan="5" class="py-8 px-2 text-center text-gray-500 text-sm">
                                     <div class="flex flex-col items-center">

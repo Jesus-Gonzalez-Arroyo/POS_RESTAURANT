@@ -20,6 +20,7 @@ export class Bills implements OnInit {
   isEditMode: boolean = false;
   showDetailModal: boolean = false;
   selectedExpense: Expense | null = null;
+  loading: boolean = false;
   
   // Formulario
   newExpense: Partial<Expense> = {
@@ -42,6 +43,7 @@ export class Bills implements OnInit {
   // Paginación
   currentPage = 1;
   itemsPerPage = 10;
+  totalItems = 0;
   
   // Ordenamiento
   sortBy: string = 'date';
@@ -62,13 +64,16 @@ export class Bills implements OnInit {
   }
 
   loadExpenses() {
+    this.loading = true;
     this.billService.getBills().subscribe({
       next: (data: any) => {
         this.expenses = data;
+        this.loading = false;
       },
       error: (error) => {
         Alert('Error', 'No se pudieron cargar los gastos', 'error');
         console.error('Error al cargar los gastos', error);
+        this.loading = false;
       }
     });
   }
@@ -207,6 +212,9 @@ export class Bills implements OnInit {
       filtered = filtered.filter(e => new Date(e.date) <= end);
     }
 
+    // Actualizar total de items
+    this.totalItems = filtered.length;
+
     // Ordenamiento
     return this.sortExpenses(filtered);
   }
@@ -252,6 +260,59 @@ export class Bills implements OnInit {
     return Math.ceil(this.filteredExpenses.length / this.itemsPerPage);
   }
 
+  // Obtener array de páginas para la paginación
+  get pages() {
+    const maxPages = 5;
+    const total = this.totalPages;
+    
+    if (total <= maxPages) {
+      return Array(total).fill(0).map((_, i) => i + 1);
+    }
+
+    const current = this.currentPage;
+    const pages = [];
+    
+    if (current <= 3) {
+      for (let i = 1; i <= 4; i++) pages.push(i);
+      pages.push(total);
+    } else if (current >= total - 2) {
+      pages.push(1);
+      for (let i = total - 3; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push(current - 1);
+      pages.push(current);
+      pages.push(current + 1);
+      pages.push(total);
+    }
+    
+    return pages;
+  }
+
+  // Navegación de páginas
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  // Cambiar cantidad de elementos por página
+  changeItemsPerPage() {
+    this.currentPage = 1;
+  }
+
   get totalExpenses() {
     return this.filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
   }
@@ -270,6 +331,8 @@ export class Bills implements OnInit {
     this.filterPaymentMethod = 'todos';
     this.startDate = '';
     this.endDate = '';
+    this.sortBy = 'date';
+    this.sortOrder = 'desc';
     this.currentPage = 1;
   }
 
