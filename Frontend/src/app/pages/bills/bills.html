@@ -254,7 +254,17 @@
                         </div>
                     </td>
                 </tr>
-                <tr *ngIf="paginatedExpenses.length === 0">
+
+                <tr *ngIf="loading">
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-3"></i>
+                            <p class="text-gray-500 font-medium">Cargando gastos...</p>
+                        </div>
+                    </td>
+                </tr>
+                
+                <tr *ngIf="!loading && paginatedExpenses.length === 0">
                     <td colspan="7" class="px-6 py-12 text-center">
                         <div class="text-gray-400">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
@@ -269,24 +279,85 @@
         </table>
     </div>
 
-    <!-- Paginación -->
-    <div *ngIf="totalPages > 1" class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-        <div class="text-sm text-gray-600">
-            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredExpenses.length) }} de {{ filteredExpenses.length }}
-        </div>
-        <div class="flex gap-2">
+    <!-- Footer con paginación -->
+    <div class="py-4 flex items-center justify-between border-t border-gray-200 mt-4 bg-gray-50 px-4 rounded-b-lg">
+        <div class="flex-1 flex justify-between sm:hidden">
             <button 
-                (click)="currentPage = currentPage - 1"
+                (click)="previousPage()"
                 [disabled]="currentPage === 1"
-                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                 Anterior
             </button>
             <button 
-                (click)="currentPage = currentPage + 1"
+                (click)="nextPage()"
                 [disabled]="currentPage === totalPages"
-                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                 Siguiente
             </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div class="flex items-center gap-4">
+                <p class="text-sm text-gray-700 font-medium">
+                    Mostrando 
+                    <span class="font-bold text-red-600">{{ ((currentPage - 1) * itemsPerPage) + 1 }}</span> 
+                    a 
+                    <span class="font-bold text-red-600">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span> 
+                    de 
+                    <span class="font-bold text-red-600">{{ totalItems }}</span> resultados
+                </p>
+                
+                <!-- Selector de elementos por página -->
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-700">Mostrar:</label>
+                    <select 
+                        [(ngModel)]="itemsPerPage" 
+                        (change)="changeItemsPerPage()"
+                        class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <span class="text-sm text-gray-700">por página</span>
+                </div>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <!-- Botón Anterior -->
+                    <button 
+                        (click)="previousPage()" 
+                        [disabled]="currentPage === 1"
+                        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Anterior</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Números de página -->
+                    <button 
+                        *ngFor="let page of pages" 
+                        (click)="goToPage(page)"
+                        [class]="'relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 ' + 
+                                (currentPage === page 
+                                 ? 'z-10 bg-red-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600' 
+                                 : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50')">
+                        {{ page }}
+                    </button>
+                    
+                    <!-- Botón Siguiente -->
+                    <button 
+                        (click)="nextPage()" 
+                        [disabled]="currentPage === totalPages"
+                        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="sr-only">Siguiente</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </nav>
+            </div>
         </div>
     </div>
 </div>

@@ -168,7 +168,6 @@ export class Products implements OnInit {
   }
 
   deleteProduct(id: number) {
-    this.loading = true;
     ConfirmAlert({
       title: 'Eliminar Producto',
       message: '¿Está seguro de que desea eliminar este producto?',
@@ -186,8 +185,7 @@ export class Products implements OnInit {
     this.productsService.deleteProduct(id).subscribe({
       next: () => {
         Alert('Éxito', 'Producto eliminado correctamente', 'success');
-        this.allProducts = this.allProducts.filter(product => product.id !== id);
-        this.loading = false;
+        this.loadProducts();
       },
       error: (error) => {
         console.error('Error eliminando producto:', error);

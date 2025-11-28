@@ -17,30 +17,45 @@ import { Alert } from '../../shared/utils/alert';
 })
 export class Login {
   loginForm: FormGroup;
+  isLoading = false;
 
   constructor(private fb: FormBuilder, private authService: Auth, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required]]
     });
   }
 
   onSubmit() {
+    this.isLoading = true;
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
           
       this.authService.login(email, password).subscribe({
         next: (response: any) => {
+          const userData = this.decodeToken(response.token);
           localStorage.setItem('token', response.token);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate([ userData.role === '1' ? '/sales' : '/dashboard' ]);
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error en el login:', error);
           Alert('Error', 'Credenciales inválidas. Por favor, intente nuevamente.', 'error');
+          this.isLoading = false;
         }
       });
     } else {
       this.loginForm.markAllAsTouched();
+    }
+  }
+
+  decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (error) {
+      console.error('Token inválido');
+      return null;
     }
   }
 }
