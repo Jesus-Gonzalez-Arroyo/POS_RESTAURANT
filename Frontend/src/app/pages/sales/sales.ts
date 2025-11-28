@@ -23,6 +23,7 @@ export class Sales implements OnInit  {
   selectedCategory = 'Todos';
   categories: Category[] = [];
   searchTerm = '';
+  isLoading: boolean = false;
   
   cart: {name: string, price: number, quantity: number, total: number}[] = [];
   
@@ -51,13 +52,16 @@ export class Sales implements OnInit  {
   }
 
   loadProducts() {
+    this.isLoading = true;
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
         this.allProducts = products;
+        this.isLoading = false;
       },
       error: (error: any) => {
         Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
         console.error('Error loading products:', error);
+        this.isLoading = false;
       }
     });
   }
