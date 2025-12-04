@@ -71,7 +71,7 @@ export class Accounting implements OnInit {
     // Filtro por método de pago
     if (this.selectedPaymentMethod) {
       result = result.filter(sale => 
-        sale.paymentmethod === this.selectedPaymentMethod
+        sale.paymentmethod.toLocaleLowerCase() === this.selectedPaymentMethod.toLocaleLowerCase()
       );
     }
 
