@@ -20,7 +20,7 @@
                         <p class="text-3xl font-bold mt-1">${{ formatPrice(totalSalesAmount) }}</p>
                         <p class="text-blue-100 text-xs mt-2">{{ filteredSales.length }} transacciones</p>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <div class="bg-white bg-opacity-20 rounded-full p-4 md:hidden lg:block">
                         <i class="fas fa-dollar-sign text-lg"></i>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                         <p class="text-3xl font-bold mt-1">${{ formatPrice(totalProfits) }}</p>
                         <p class="text-green-100 text-xs mt-2">Margen de beneficio</p>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <div class="bg-white bg-opacity-20 rounded-full p-4 md:hidden lg:block">
                         <i class="fas fa-chart-line text-lg"></i>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                         <p class="text-3xl font-bold mt-1">${{ formatPrice(averageSaleAmount) }}</p>
                         <p class="text-purple-100 text-xs mt-2">Ticket promedio</p>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <div class="bg-white bg-opacity-20 rounded-full p-4 md:hidden lg:block">
                         <i class="fas fa-receipt text-lg"></i>
                     </div>
                 </div>

@@ -1,26 +1,26 @@
-<div class="flex gap-5">
-    <div class="w-[70%] h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
+<div class="flex flex-col lg:flex-row gap-5">
+    <div class="w-full lg:w-[70%] h-[calc(100vh-7.5rem)] p-4 md:p-7 bg-white rounded-lg shadow overflow-y-auto">
         <div class="mb-4">
-            <h2 class="text-gray-700 text-2xl font-bold">Productos disponibles</h2>
-            <p class="text-gray-500 text-sm mt-1">Realiza ventas de productos disponibles en el inventario.</p>
+            <h2 class="text-gray-700 text-xl md:text-2xl font-bold">Productos disponibles</h2>
+            <p class="text-gray-500 text-xs md:text-sm mt-1">Realiza ventas de productos disponibles en el inventario.</p>
         </div>
 
         <div>
             <input type="text" placeholder="Buscar productos..."
-                class="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none" [(ngModel)]="searchTerm" />
+                class="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none text-sm md:text-base" [(ngModel)]="searchTerm" />
         </div>
 
         <!-- categorías -->
         <div class="mb-6">
             <div class="flex flex-wrap gap-2">
-                <button (click)="selectCategory('Todos')" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
+                <button (click)="selectCategory('Todos')" [class]="'px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ' + 
                              (selectedCategory === 'Todos'
                               ? 'bg-blue-500 text-white' 
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300')">
                     Todos
                 </button>
                 <div *ngFor="let category of categories">
-                    <button *ngIf="category.is_active" (click)="selectCategory(category.name)" [class]="'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + 
+                    <button *ngIf="category.is_active" (click)="selectCategory(category.name)" [class]="'px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors ' + 
                              (selectedCategory === category.name
                               ? 'bg-blue-500 text-white' 
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300')">
@@ -31,21 +31,21 @@
         </div>
 
         <div *ngIf="!isLoading">
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] xl:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 md:gap-6 mt-4">
                 <div *ngFor="let product of products">
-                    <div *ngIf="product.availability" [class.w-[270px]]="products.length === 1" class="w-[1fr] bg-white p-4 rounded-lg shadow-md hover:shadow-lg cursor-pointer">
-                        <div class="h-30 rounded overflow-hidden">
-                            <img class="object-fit w-full h-full"
+                    <div *ngIf="product.availability" class="w-full bg-white p-3 md: p-4 rounded-lg shadow-md hover:shadow-lg cursor-pointer transition-shadow">
+                        <div class="h-24 md:h-30 rounded overflow-hidden">
+                            <img class="object-cover w-full h-full"
                                 src="{{ getImageUrl(product.img) }}"
                                 alt="Product Image">
                         </div>
-                        <div class="mt-5">
-                            <div class="text-gray-700 font-semibold text-lg">{{ product.name }}</div>
-                            <div class="text-gray-500 mt-2">${{ formatPrice(product.price) }}</div>
+                        <div class="mt-3 md:mt-5">
+                            <div class="text-gray-700 font-semibold text-base md:text-lg line-clamp-2">{{ product.name }}</div>
+                            <div class="text-gray-500 text-sm md:text-base mt-2">${{ formatPrice(product.price) }}</div>
                         </div>
                         <div>
                             <button
-                                class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full" (click)="addCartProduct(product)">Agregar</button>
+                                class="mt-3 md:mt-4 bg-blue-500 text-white px-3 md:px-4 py-2 rounded hover:bg-blue-600 w-full text-sm md:text-base transition-colors" (click)="addCartProduct(product)">Agregar</button>
                         </div>
                     </div>
                 </div>
@@ -67,111 +67,113 @@
         <div *ngIf="products.length === 0 && !isLoading">
             <div class="flex flex-col justify-center items-center mt-20">
                 <div class="text-4xl mb-2">📦</div>
-                <div class="text-gray-700 font-semibold text-lg">No se encontraron productos</div>
-                <div class="text-gray-500 text-sm mt-1">Intenta con otro término de búsqueda o categoría</div>
+                <div class="text-gray-700 font-semibold text-base md:text-lg">No se encontraron productos</div>
+                <div class="text-gray-500 text-xs md:text-sm mt-1">Intenta con otro término de búsqueda o categoría</div>
             </div>
         </div>
     </div>
-    <div class="w-[30%] relative">
-        <div class="p-7 bg-white rounded-lg shadow h-[calc(100vh-7.5rem)] overflow-y-auto">
+    <div class="w-full lg:w-[30%] lg:relative">
+        <div class="p-4 md:p-7 bg-white rounded-lg shadow h-auto lg:h-[calc(100vh-7.5rem)] overflow-y-auto">
             <div>
-                <div class="text-gray-500 text-xl mb-4">Completar pedido</div>
+                <div class="text-gray-500 text-lg md:text-xl mb-4">Completar pedido</div>
             </div>
 
-            <div class="overflow-y-auto mb-30">
+            <div class="overflow-y-auto lg:mb-30">
                 <div class="mb-6">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-2 border-b border-gray-200 text-left text-gray-600 text-sm">Producto
-                                </th>
-                                <th class="py-2 px-2 border-b border-gray-200 text-center text-gray-600 text-sm">Cantidad
-                                </th>
-                                <th class="py-2 px-2 border-b border-gray-200 text-right text-gray-600 text-sm">Precio
-                                </th>
-                                <th class="py-2 px-2 border-b border-gray-200 text-right text-gray-600 text-sm">Total
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let item of cart" class="hover:bg-gray-50">
-                                <td class="py-3 px-2 border-b border-gray-200 text-sm text-gray-800">
-                                    <div class="font-medium">{{ item.name }}</div>
-                                </td>
-                                <td class="py-3 px-2 border-b border-gray-200 text-center">
-                                    <div class="flex items-center justify-center space-x-2">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-2 border-b border-gray-200 text-left text-gray-600 text-xs md:text-sm">Producto
+                                    </th>
+                                    <th class="py-2 px-2 border-b border-gray-200 text-center text-gray-600 text-xs md:text-sm">Cant.
+                                    </th>
+                                    <th class="py-2 px-2 border-b border-gray-200 text-right text-gray-600 text-xs md:text-sm">Precio
+                                    </th>
+                                    <th class="py-2 px-2 border-b border-gray-200 text-right text-gray-600 text-xs md:text-sm">Total
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of cart" class="hover:bg-gray-50">
+                                    <td class="py-3 px-2 border-b border-gray-200 text-xs md:text-sm text-gray-800">
+                                        <div class="font-medium line-clamp-2">{{ item.name }}</div>
+                                    </td>
+                                    <td class="py-3 px-2 border-b border-gray-200 text-center">
+                                        <div class="flex items-center justify-center space-x-1 md:space-x-2">
+                                            <button 
+                                                (click)="decreaseQuantity(item)"
+                                                class="w-6 h-6 md:w-7 md:h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs font-bold"
+                                                [disabled]="item.quantity <= 1"
+                                                [class.opacity-50]="item.quantity <= 1"
+                                                [class.cursor-not-allowed]="item.quantity <= 1">
+                                                -
+                                            </button>
+                                            <span class="w-6 md:w-8 text-center font-medium text-xs md:text-sm">{{ item.quantity }}</span>
+                                            <button 
+                                                (click)="increaseQuantity(item)"
+                                                class="w-6 h-6 md:w-7 md:h-7 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors text-xs font-bold">
+                                                +
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-2 border-b border-gray-200 text-right text-xs md:text-sm text-gray-800">
+                                        ${{ formatPrice(item.price) }}
+                                    </td>
+                                    <td class="py-3 px-2 border-b border-gray-200 text-right text-xs md:text-sm font-medium text-gray-900">
+                                        ${{ formatPrice(item.total) }}
+                                    </td>
+                                    <td class="py-3 px-2 border-b border-gray-200 text-center">
                                         <button 
-                                            (click)="decreaseQuantity(item)"
-                                            class="w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs font-bold"
-                                            [disabled]="item.quantity <= 1"
-                                            [class.opacity-50]="item.quantity <= 1"
-                                            [class.cursor-not-allowed]="item.quantity <= 1">
-                                            -
+                                            (click)="removeFromCart(item)"
+                                            class="w-5 h-5 md:w-6 md:h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
+                                            title="Eliminar producto del carrito">
+                                            ×
                                         </button>
-                                        <span class="w-8 text-center font-medium text-sm">{{ item.quantity }}</span>
-                                        <button 
-                                            (click)="increaseQuantity(item)"
-                                            class="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors text-xs font-bold">
-                                            +
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-2 border-b border-gray-200 text-right text-sm text-gray-800">
-                                    ${{ formatPrice(item.price) }}
-                                </td>
-                                <td class="py-3 px-2 border-b border-gray-200 text-right text-sm font-medium text-gray-900">
-                                    ${{ formatPrice(item.total) }}
-                                </td>
-                                <td class="py-3 px-2 border-b border-gray-200 text-center">
-                                    <button 
-                                        (click)="removeFromCart(item)"
-                                        class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
-                                        title="Eliminar producto del carrito">
-                                        ×
-                                    </button>
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
 
-                            <tr *ngIf="cart.length === 0">
-                                <td colspan="5" class="py-8 px-2 text-center text-gray-500 text-sm">
-                                    <div class="flex flex-col items-center">
-                                        <div class="text-4xl mb-2">🛒</div>
-                                        <div>Tu carrito está vacío</div>
-                                        <div class="text-xs mt-1">Agrega productos para completar tu pedido</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <tr *ngIf="cart.length === 0">
+                                    <td colspan="5" class="py-8 px-2 text-center text-gray-500 text-xs md:text-sm">
+                                        <div class="flex flex-col items-center">
+                                            <div class="text-3xl md:text-4xl mb-2">🛒</div>
+                                            <div>Tu carrito está vacío</div>
+                                            <div class="text-xs mt-1">Agrega productos para completar tu pedido</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Información del cliente -->
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Nombre del cliente *</label>
+                    <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Nombre del cliente *</label>
                     <input type="text" [(ngModel)]="customerName" placeholder="Ingrese el nombre del cliente"
-                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none" />
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base" />
                 </div>
 
                 <!-- Tipo de entrega -->
                 <div class="mb-4">
                     <label class="flex items-center">
                         <input type="checkbox" [(ngModel)]="isDelivery" class="mr-2" />
-                        <span class="text-gray-700 text-sm font-medium">¿Es para entrega a domicilio?</span>
+                        <span class="text-gray-700 text-xs md:text-sm font-medium">¿Es para entrega a domicilio?</span>
                     </label>
                 </div>
 
                 <!-- Dirección (solo si es delivery) -->
                 <div class="mb-4" *ngIf="isDelivery">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Dirección de entrega *</label>
+                    <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Dirección de entrega *</label>
                     <textarea [(ngModel)]="deliveryAddress" placeholder="Ingrese la dirección completa" rows="2"
-                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none"></textarea>
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base"></textarea>
                 </div>
 
                 <!-- Método de pago -->
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Método de pago</label>
+                    <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Método de pago</label>
                     <select [(ngModel)]="paymentMethod"
-                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none">
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base">
                         <option *ngFor="let method of paymentMethods" [value]="method.value">
                             {{ method.label }}
                         </option>
@@ -180,32 +182,32 @@
 
                 <!-- Ingresar valor recibido (si es efectivo) -->
                 <div class="mb-4" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo'">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Valor recibido *</label>
+                    <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Valor recibido *</label>
                     <input type="text" [(ngModel)]="change" placeholder="Ingrese el valor recibido"
-                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none" />
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base" />
                 </div>
             </div>
 
-            <div class="absolute bottom-7 left-7 right-7 bg-white">
+            <div class="lg:absolute lg:bottom-7 lg:left-7 lg:right-7 bg-white mt-4 lg:mt-0">
                 <!-- Calcular cambio -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                     <div class="flex justify-between items-center">
-                        <span class="text-lg font-semibold text-gray-700">Cambio:</span>
-                        <span class="text-xl font-bold text-green-600">${{ formatPrice(change !== null ? change - orderTotal : 0) }}</span>
+                        <span class="text-base md:text-lg font-semibold text-gray-700">Cambio:</span>
+                        <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(change !== null ? change - orderTotal : 0) }}</span>
                     </div>
                 </div>
 
                 <!-- Total de la orden -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                     <div class="flex justify-between items-center">
-                        <span class="text-lg font-semibold text-gray-700">Total:</span>
-                        <span class="text-xl font-bold text-green-600">${{ formatPrice(orderTotal) }}</span>
+                        <span class="text-base md:text-lg font-semibold text-gray-700">Total:</span>
+                        <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(orderTotal) }}</span>
                     </div>
                 </div>
 
                 <!-- Botón finalizar orden -->
                 <button (click)="finalizePurchase()"
-                    class="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium text-lg"
+                    class="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium text-base md:text-lg"
                     [disabled]="cart.length === 0" [class.opacity-50]="cart.length === 0"
                     [class.cursor-not-allowed]="cart.length === 0">
                     Registrar pedido

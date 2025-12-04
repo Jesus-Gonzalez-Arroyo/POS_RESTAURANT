@@ -8,7 +8,7 @@
     </div>
 
     <!-- Tabs Navigation -->
-    <div class="mb-6">
+    <div class="overflow-x-auto mb-6">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8">
                 <button 
@@ -187,7 +187,6 @@
             </div>
         </div>
 
-        <!-- Estado vacío -->
         <div *ngIf="paymentMethods.length === 0" class="text-center py-12">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
@@ -200,41 +199,41 @@
 
 <!-- Modal: Categoría -->
 <div *ngIf="showCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showCategoryModal = false">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full" (click)="$event.stopPropagation()">
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 text-white rounded-t-xl">
-            <h3 class="text-xl font-bold">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 md:px-6 py-3 md:py-4 text-white rounded-t-xl flex-shrink-0">
+            <h3 class="text-lg md:text-xl font-bold">
                 {{ editingCategory ? 'Editar Categoría' : 'Nueva Categoría' }}
             </h3>
         </div>
         
-        <form (ngSubmit)="saveCategory()" class="p-6 space-y-4">
+        <form (ngSubmit)="saveCategory()" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4">
             <!-- Nombre -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Nombre *</label>
                 <input 
                     type="text"
                     [(ngModel)]="newCategory.name"
                     name="name"
                     placeholder="Ej: Bebidas, Comidas, Postres..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required>
             </div>
 
             <!-- Descripción -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Descripción</label>
                 <textarea 
                     [(ngModel)]="newCategory.description"
                     name="description"
                     rows="2"
                     placeholder="Descripción opcional de la categoría..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
 
             <!-- Color -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
-                <div class="grid grid-cols-4 gap-3">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Color</label>
+                <div class="grid grid-cols-4 gap-2 md:gap-3">
                     <div *ngFor="let color of availableColors" class="flex flex-col items-center">
                         <input 
                             type="radio"
@@ -245,18 +244,18 @@
                             class="sr-only">
                         <label 
                             [for]="'color-' + color.value"
-                            [class]="'w-8 h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newCategory.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
+                            [class]="'w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newCategory.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
                             [title]="color.label">
                         </label>
-                        <span class="text-xs text-gray-600 mt-1">{{ color.label }}</span>
+                        <span class="text-[10px] md:text-xs text-gray-600 mt-1">{{ color.label }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Ícono -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Ícono</label>
-                <div class="grid grid-cols-4 gap-3">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Ícono</label>
+                <div class="grid grid-cols-4 gap-2 md:gap-3">
                     <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
                         <input 
                             type="radio"
@@ -267,10 +266,10 @@
                             class="sr-only">
                         <label 
                             [for]="'icon-' + icon.value"
-                            [class]="'w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newCategory.icon === icon.value ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 hover:border-gray-400')">
-                            <i [class]="'fas text-lg ' + icon.value"></i>
+                            [class]="'w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newCategory.icon === icon.value ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 hover:border-gray-400')">
+                            <i [class]="'fas text-base md:text-lg ' + icon.value"></i>
                         </label>
-                        <span class="text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
+                        <span class="text-[10px] md:text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
                     </div>
                 </div>
             </div>
@@ -283,66 +282,66 @@
                     name="isActive"
                     id="categoryActive"
                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="categoryActive" class="ml-2 block text-sm text-gray-700">
+                <label for="categoryActive" class="ml-2 block text-xs md:text-sm text-gray-700">
                     Categoría activa
                 </label>
             </div>
-
-            <!-- Botones -->
-            <div class="flex gap-3 pt-4">
-                <button 
-                    type="button"
-                    (click)="showCategoryModal = false"
-                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
-                    Cancelar
-                </button>
-                <button 
-                    type="submit"
-                    class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-semibold">
-                    {{ editingCategory ? 'Actualizar' : 'Crear' }}
-                </button>
-            </div>
         </form>
+        
+        <div class="flex gap-2 md:gap-3 p-4 md:p-6 pt-0 md:pt-0 border-t border-gray-200 flex-shrink-0">
+            <button 
+                type="button"
+                (click)="showCategoryModal = false"
+                class="flex-1 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                Cancelar
+            </button>
+            <button 
+                type="submit"
+                (click)="saveCategory()"
+                class="flex-1 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-semibold">
+                {{ editingCategory ? 'Actualizar' : 'Crear' }}
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Modal: Método de Pago -->
 <div *ngIf="showPaymentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showPaymentModal = false">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full" (click)="$event.stopPropagation()">
-        <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 text-white rounded-t-xl">
-            <h3 class="text-xl font-bold">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 px-4 md:px-6 py-3 md:py-4 text-white rounded-t-xl flex-shrink-0">
+            <h3 class="text-lg md:text-xl font-bold">
                 {{ editingPayment ? 'Editar Método de Pago' : 'Nuevo Método de Pago' }}
             </h3>
         </div>
         
-        <form (ngSubmit)="savePaymentMethod()" class="p-6 space-y-4">
+        <form (ngSubmit)="savePaymentMethod()" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4">
             <!-- Nombre -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Nombre *</label>
                 <input 
                     type="text"
                     [(ngModel)]="newPaymentMethod.name"
                     name="name"
                     placeholder="Ej: Efectivo, Tarjeta, Transferencia..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     required>
             </div>
 
             <!-- Descripción -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Descripción</label>
                 <textarea 
                     [(ngModel)]="newPaymentMethod.description"
                     name="description"
                     rows="2"
                     placeholder="Descripción opcional del método de pago..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+                    class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
             </div>
 
             <!-- Color -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
-                <div class="grid grid-cols-4 gap-3">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Color</label>
+                <div class="grid grid-cols-4 gap-2 md:gap-3">
                     <div *ngFor="let color of availableColors" class="flex flex-col items-center">
                         <input 
                             type="radio"
@@ -353,18 +352,18 @@
                             class="sr-only">
                         <label 
                             [for]="'payment-color-' + color.value"
-                            [class]="'w-8 h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newPaymentMethod.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
+                            [class]="'w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer border-2 transition-all duration-200 ' + color.class + (newPaymentMethod.color === color.value ? ' border-gray-800 scale-110' : ' border-gray-300')"
                             [title]="color.label">
                         </label>
-                        <span class="text-xs text-gray-600 mt-1">{{ color.label }}</span>
+                        <span class="text-[10px] md:text-xs text-gray-600 mt-1">{{ color.label }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Ícono -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Ícono</label>
-                <div class="grid grid-cols-4 gap-3">
+                <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Ícono</label>
+                <div class="grid grid-cols-4 gap-2 md:gap-3">
                     <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
                         <input 
                             type="radio"
@@ -375,10 +374,10 @@
                             class="sr-only">
                         <label 
                             [for]="'payment-icon-' + icon.value"
-                            [class]="'w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newPaymentMethod.icon === icon.value ? 'border-green-500 bg-green-50 text-green-600' : 'border-gray-300 hover:border-gray-400')">
-                            <i [class]="'fas text-lg ' + icon.value"></i>
+                            [class]="'w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 ' + (newPaymentMethod.icon === icon.value ? 'border-green-500 bg-green-50 text-green-600' : 'border-gray-300 hover:border-gray-400')">
+                            <i [class]="'fas text-base md:text-lg ' + icon.value"></i>
                         </label>
-                        <span class="text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
+                        <span class="text-[10px] md:text-xs text-gray-600 mt-1 text-center">{{ icon.label }}</span>
                     </div>
                 </div>
             </div>
@@ -391,25 +390,25 @@
                     name="isActive"
                     id="paymentActive"
                     class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                <label for="paymentActive" class="ml-2 block text-sm text-gray-700">
+                <label for="paymentActive" class="ml-2 block text-xs md:text-sm text-gray-700">
                     Método activo
                 </label>
             </div>
-
-            <!-- Botones -->
-            <div class="flex gap-3 pt-4">
-                <button 
-                    type="button"
-                    (click)="showPaymentModal = false"
-                    class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
-                    Cancelar
-                </button>
-                <button 
-                    type="submit"
-                    class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold">
-                    {{ editingPayment ? 'Actualizar' : 'Crear' }}
-                </button>
-            </div>
         </form>
+        
+        <div class="flex gap-2 md:gap-3 p-4 md:p-6 pt-0 md:pt-0 border-t border-gray-200 flex-shrink-0">
+            <button 
+                type="button"
+                (click)="showPaymentModal = false"
+                class="flex-1 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold">
+                Cancelar
+            </button>
+            <button 
+                type="submit"
+                (click)="savePaymentMethod()"
+                class="flex-1 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold">
+                {{ editingPayment ? 'Actualizar' : 'Crear' }}
+            </button>
+        </div>
     </div>
 </div>
