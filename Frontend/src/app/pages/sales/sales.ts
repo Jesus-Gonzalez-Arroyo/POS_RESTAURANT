@@ -25,9 +25,10 @@ export class Sales implements OnInit {
   selectedCategory = 'Todos';
   categories: Category[] = [];
   searchTerm = '';
+  scanInput = '';
   isLoading: boolean = false;
 
-  cart: { name: string, price: number, quantity: number, total: number, stock?: number }[] = [];
+  cart: {id: number, name: string, price: number, quantity: number, total: number, stock?: number }[] = [];
 
   // Datos del cliente and order
   customerName = '';
@@ -141,10 +142,8 @@ export class Sales implements OnInit {
       return;
     }
 
-    // Limpiar las imágenes de los productos antes de crear la orden
     const productsWithoutImages = this.cart.map(product => {
       const { ...productWithoutImg } = product;
-      // Eliminar cualquier propiedad de imagen que pudiera existir
       delete (productWithoutImg as any).img;
       delete (productWithoutImg as any).image;
       return productWithoutImg;
@@ -169,6 +168,7 @@ export class Sales implements OnInit {
         } else {
           Alert('Completado', 'Venta registrada con éxito. No hay caja abierta.', 'warning');
         }
+        this.descuentStockProducts();
       },
       error: (error: any) => {
         Alert('Error', 'No se pudo registrar la venta. Intente nuevamente.', 'error');
@@ -188,7 +188,53 @@ export class Sales implements OnInit {
     this.change = null;
   }
 
-  addCartProduct(product: { name: string, price: number, stock: number }) {
+  // Descontar stock de los productos vendidos
+  descuentStockProducts() {
+    for (const item of this.cart) {
+      const product = this.allProducts.find(p => p.id === item.id);
+      if(product) {
+        product.stock = product.stock - item.quantity;
+      }
+    }
+  }
+    
+
+  // Buscar producto por escaneo y agregarlo automáticamente
+  onScanProduct() {
+    if (!this.scanInput.trim()) {
+      return;
+    }
+
+    const searchTerm = this.scanInput.toLowerCase().trim();
+
+    const product = this.allProducts.find(p => 
+      p.name.toLowerCase().includes(searchTerm) ||
+      p.name.toLowerCase() === searchTerm
+    );
+
+    if (product) {
+      if (!product.availability) {
+        Alert('No disponible', `El producto ${product.name} no está disponible`, 'warning');
+        this.scanInput = '';
+        return;
+      }
+
+      if (product.stock === 0) {
+        Alert('Sin stock', `El producto ${product.name} no tiene stock disponible`, 'warning');
+        this.scanInput = '';
+        return;
+      }
+      
+      this.addCartProduct(product);
+      Alert('Producto agregado', `${product.name} agregado al carrito`, 'success');
+    } else {
+      Alert('Producto no encontrado', `No se encontró ningún producto con el código: ${this.scanInput}`, 'error');
+    }
+
+    this.scanInput = '';
+  }
+
+  addCartProduct(product: { id: number, name: string, price: number, stock: number }) {
     const existingItem = this.cart.find(item => item.name === product.name);
     if (existingItem) {
       if(existingItem.quantity >= product.stock) {
@@ -246,8 +292,8 @@ export class Sales implements OnInit {
     item.total = item.price * item.quantity;
   }
 
-  removeFromCart(item: { name: string, price: number, quantity: number, total: number, stock?: number }) {
-    const index = this.cart.indexOf(item);
+  removeFromCart(item: { id: number, name: string, price: number, quantity: number, total: number, stock?: number }) {
+    const index = this.cart.findIndex(cartItem => cartItem.id === item.id);
     if (index > -1) {
       this.cart.splice(index, 1);
     }
