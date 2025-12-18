@@ -3,9 +3,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 
 import { Dashboard as DashboardService } from '../../core/services/dashboard/dashboard';
-import { DashboardData, Order, productsTop } from '../../core/models/index';
+import { DashboardData, User, productsTop } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
-import { Orders as OrdersService } from '../../core/services/orders/orders';
+import { Users as UsersService } from '../../core/services/users/users';
 import { Alert } from '../../shared/utils/alert';
 
 @Component({
@@ -16,9 +16,12 @@ import { Alert } from '../../shared/utils/alert';
   standalone: true
 })
 export class Dashboard implements OnInit {
-  constructor(private dashboardService: DashboardService, private ordersService: OrdersService) {}
+  constructor(
+    private dashboardService: DashboardService, 
+    private usersService: UsersService
+  ) {}
 
-  orders: Order[] = []
+  users: User[] = []
 
   productsTop: productsTop[] = []
   salesToday: DashboardData['salesToday'] = {
@@ -48,17 +51,17 @@ export class Dashboard implements OnInit {
 
   ngOnInit() {
     this.loadDashboardData();
-    this.loadOrders();
+    this.loadUsers();
   }
 
-  loadOrders() {
-    this.ordersService.getAllOrders().subscribe({
-      next: (orders: any) => {
-        this.orders = orders;
+  loadUsers() {
+    this.usersService.getUsers().subscribe({
+      next: (users: User[]) => {
+        this.users = users;
       },
       error: (error) => {
-        Alert('Error', 'No se pudieron cargar las órdenes.', 'error');
-        console.error('Error loading orders:', error);
+        Alert('Error', 'No se pudieron cargar los usuarios.', 'error');
+        console.error('Error loading users:', error);
       }
     });
   }
