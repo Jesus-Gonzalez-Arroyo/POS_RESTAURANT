@@ -35,6 +35,8 @@ export class Login {
         next: (response: any) => {
           const userData = this.decodeToken(response.token);
           localStorage.setItem('token', response.token);
+          localStorage.setItem('user', userData.name);
+          
           this.router.navigate([ userData.role === '1' ? '/sales' : '/dashboard' ]);
           this.isLoading = false;
         },

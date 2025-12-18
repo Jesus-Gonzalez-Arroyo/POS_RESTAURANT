@@ -30,6 +30,7 @@ export class Products implements OnInit {
     earnings: null as number | null,
     category: '',
     availability: true,
+    stock: 0,
     img: null as File | null
   };
   
@@ -204,10 +205,10 @@ export class Products implements OnInit {
         earnings: existingProduct.earnings,
         category: existingProduct.category,
         availability: existingProduct.availability,
-        img: null // No incluimos la imagen existente en el formulario
+        stock: existingProduct.stock,
+        img: null
       };
       
-      // Si existe una imagen, mostrar su preview
       if (existingProduct.img) {
         this.imagePreview = this.getImageUrl(existingProduct.img);
       } else {
@@ -229,7 +230,7 @@ export class Products implements OnInit {
 
   searchProducts(event: any) {
     this.searchTerm = event.target.value;
-    this.currentPage = 1; // Resetear página al buscar
+    this.currentPage = 1;
   }
 
   // Limpiar todos los filtros
@@ -237,19 +238,19 @@ export class Products implements OnInit {
     this.searchTerm = '';
     this.selectedCategory = 'Todas';
     this.selectedAvailability = 'Todas';
-    this.currentPage = 1; // Resetear página al limpiar filtros
+    this.currentPage = 1;
   }
 
   // Filtrar por categoría
   filterByCategory(category: string) {
     this.selectedCategory = category;
-    this.currentPage = 1; // Resetear página al cambiar filtro
+    this.currentPage = 1;
   }
 
   // Filtrar por disponibilidad
   filterByAvailability(availability: string) {
     this.selectedAvailability = availability;
-    this.currentPage = 1; // Resetear página al cambiar filtro
+    this.currentPage = 1;
   }
 
   // Funciones de paginación
@@ -273,7 +274,7 @@ export class Products implements OnInit {
 
   changeItemsPerPage(newSize: number) {
     this.itemsPerPage = newSize;
-    this.currentPage = 1; // Resetear a la primera página
+    this.currentPage = 1;
   }
 
   // Funciones del formulario
@@ -294,6 +295,7 @@ export class Products implements OnInit {
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
         availability: this.newProduct.availability,
+        stock: this.newProduct.stock,
         img: this.selectedFile || undefined
       };
 
@@ -322,6 +324,7 @@ export class Products implements OnInit {
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
         availability: this.newProduct.availability,
+        stock: this.newProduct.stock,
         img: this.selectedFile || undefined
       };
       
@@ -364,6 +367,7 @@ export class Products implements OnInit {
       earnings: null as number | null,
       category: '',
       availability: true,
+      stock: 0,
       img: null as File | null
     };
     this.isEditMode = false;
@@ -379,7 +383,6 @@ export class Products implements OnInit {
       this.selectedFile = file;
       this.newProduct.img = file;
       
-      // Crear vista previa
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.imagePreview = e.target.result;
@@ -394,7 +397,6 @@ export class Products implements OnInit {
     this.selectedFile = null;
     this.newProduct.img = null;
     this.imagePreview = null;
-    // Limpiar el input de archivo
     const fileInput = document.getElementById('productImage') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
@@ -406,7 +408,6 @@ export class Products implements OnInit {
       return '';
     }
     
-    // Si imageBuffer es un objeto con type y data (como viene de PostgreSQL bytea)
     if (imageBuffer.type === 'Buffer' && imageBuffer.data) {
       const uint8Array = new Uint8Array(imageBuffer.data);
       const blob = new Blob([uint8Array], { type: 'image/jpeg' });

@@ -76,7 +76,7 @@ export class Box implements OnInit {
       cardsales: 0,
       transfersales: 0,
       status: 'abierta',
-      openedby: 'Usuario Actual',
+      openedby: localStorage.getItem('user') || 'Usuario actual',
       transactions: []
     };
 
@@ -105,7 +105,7 @@ export class Box implements OnInit {
     this.currentRegister.expectedamount = expectedamount;
     this.currentRegister.difference = difference;
     this.currentRegister.status = 'cerrada';
-    this.currentRegister.closedby = 'Usuario Actual';
+    this.currentRegister.closedby = localStorage.getItem('user') || 'Usuario actual';
     this.currentRegister.notes = this.closingNotes;
 
     this.boxRegister.createCashRegister(this.currentRegister).subscribe(

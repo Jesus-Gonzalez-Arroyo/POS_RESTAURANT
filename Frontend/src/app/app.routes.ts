@@ -12,6 +12,7 @@ import { Bills } from './pages/bills/bills';
 import { Box } from './pages/box/box';
 import { Categories } from './pages/settings/settings';
 import { Users } from './pages/users/users';
+import { Returning } from './pages/returning/returning';
 
 export const routes: Routes = [
     { path: '', component: Login},
@@ -24,6 +25,7 @@ export const routes: Routes = [
         { path: 'expenses', component: Bills, canActivate: [AuthGuard], data: { roles: ["0"] } },
         { path: 'cash-register', component: Box, canActivate: [AuthGuard], data: { roles: ["1", "0"] } },
         { path: 'settings', component: Categories, canActivate: [AuthGuard], data: { roles: ["0"] } },
-        { path: 'users', component: Users, canActivate: [AuthGuard], data: { roles: ["0"] } }
-    ]}
+        { path: 'users', component: Users, canActivate: [AuthGuard], data: { roles: ["0"] } },
+        { path: 'returning', component: Returning, canActivate: [AuthGuard], data: { roles: ["1", "0"] } }
+    ]} 
 ];

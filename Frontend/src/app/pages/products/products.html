@@ -1,5 +1,4 @@
 <div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
-    <!-- Header con título -->
     <div class="mb-6">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -78,6 +77,7 @@
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Precio</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ganancia</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Stock</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Categoría</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Disponibilidad</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Acciones</th>
@@ -127,6 +127,21 @@
                         </div>
                     </td>
                     
+                    <!-- Stock -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="px-3 py-1.5 flex items-center text-xs leading-5 font-bold rounded-full shadow-sm"
+                                [ngClass]="{
+                                    'bg-gradient-to-r from-red-100 to-red-200 text-red-800': product.stock == 0,
+                                    'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800': product.stock > 0 && product.stock <= 10,
+                                    'bg-gradient-to-r from-green-100 to-green-200 text-green-800': product.stock > 10
+                                }">
+                                <i class="fas fa-box mr-1"></i>
+                                {{ product.stock || 0 }}
+                            </span>
+                        </div>
+                    </td>
+                    
                     <!-- Categoría -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 shadow-sm">
@@ -145,11 +160,13 @@
                         </span>
                     </td>
 
-                    <td>
-                        <div class="flex items-center">
+                    <!-- Acciones -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
                             <button 
                                 (click)="editProduct(product)"
-                                class="px-3 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-150">
+                                class="px-3 py-2 text-blue-600 hover:text-blue-800 transition-colors duration-150"
+                                title="Editar producto">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
                                     <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
@@ -157,7 +174,8 @@
                             </button>
                             <button 
                                 (click)="deleteProduct(product.id)"
-                                class="text-red-600 hover:text-red-800 transition-colors duration-150">
+                                class="px-3 py-2 text-red-600 hover:text-red-800 transition-colors duration-150"
+                                title="Eliminar producto">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                 </svg>
@@ -168,7 +186,7 @@
 
                 <!-- Estado de carga -->
                 <tr *ngIf="loading">
-                    <td colspan="8" class="px-6 py-12 text-center">
+                    <td colspan="9" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
                             <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-3"></i>
                             <p class="text-gray-500 font-medium">Cargando productos...</p>
@@ -178,7 +196,7 @@
 
                 <!-- Sin resultados -->
                 <tr *ngIf="!loading && !error && allProducts.length === 0">
-                    <td colspan="8" class="px-6 py-12 text-center">
+                    <td colspan="9" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
                             <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 font-medium text-lg">No se encontraron productos</p>
@@ -361,6 +379,25 @@
                     <option [value]="true">Disponible</option>
                     <option [value]="false">No disponible</option>
                 </select>
+            </div>
+
+            <!-- Stock -->
+            <div class="col-span-2">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productStock">
+                    Stock (Cantidad en Inventario) *
+                </label>
+                <input 
+                    id="productStock"
+                    type="number" 
+                    [(ngModel)]="newProduct.stock"
+                    name="productStock"
+                    placeholder="0"
+                    min="0"
+                    step="1"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                />
+                <p class="text-xs text-gray-500 mt-1">Ingrese la cantidad disponible en inventario</p>
             </div>
 
             <!-- Imagen del producto -->

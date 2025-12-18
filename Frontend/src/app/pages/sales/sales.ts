@@ -10,6 +10,8 @@ import { Category, PaymentMethod, Product } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice'
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
+import { BoxRegister } from '../../core/services/box/box-register';
+import { Sales as salesService } from '../../core/services/sales/sales';
 
 @Component({
   selector: 'app-sales',
@@ -18,15 +20,15 @@ import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-me
   styleUrl: './sales.css',
   standalone: true
 })
-export class Sales implements OnInit  {
+export class Sales implements OnInit {
 
   selectedCategory = 'Todos';
   categories: Category[] = [];
   searchTerm = '';
   isLoading: boolean = false;
-  
-  cart: {name: string, price: number, quantity: number, total: number}[] = [];
-  
+
+  cart: { name: string, price: number, quantity: number, total: number, stock?: number }[] = [];
+
   // Datos del cliente and order
   customerName = '';
   isDelivery = false;
@@ -34,7 +36,7 @@ export class Sales implements OnInit  {
   paymentMethod = 'efectivo';
   paymentMethods: { value: string, label: string }[] = [];
   change: number | null = null;
-  
+
   allProducts = [] as Product[];
 
   constructor(
@@ -42,8 +44,10 @@ export class Sales implements OnInit  {
     private router: Router,
     @Inject(ProductsService) private productsService: ProductsService,
     private categoriesService: Categories,
-    private paymentsService: PaymenthMethods
-  ) {}
+    private paymentsService: PaymenthMethods,
+    private salesService: salesService,
+    private boxService: BoxRegister
+  ) { }
 
   ngOnInit(): void {
     this.loadProducts();
@@ -103,7 +107,7 @@ export class Sales implements OnInit  {
 
     // Filtrar por búsqueda
     if (searchTerm) {
-      filteredProducts = filteredProducts.filter(product => 
+      filteredProducts = filteredProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm)
       );
     }
@@ -146,37 +150,31 @@ export class Sales implements OnInit  {
       return productWithoutImg;
     });
 
-    const order = {
+    const orderCompleted = {
       customer: this.customerName,
-      isdelivery: this.isDelivery,
-      deliveryaddress: this.isDelivery ? this.deliveryAddress : null,
+      total: String(this.orderTotal),
       paymentmethod: this.paymentMethod,
       products: productsWithoutImages,
-      total: String(this.orderTotal),
       time: new Date(),
-      status: 'En preparación'
-    };
+      ganancias: '0'
+    }
 
-    this.ordersService.createOrder(order).subscribe({
-      next: (response) => {
-        ConfirmAlert({
-          title: 'Orden creada',
-          message: `La orden ha sido creada exitosamente.`,
-          icon: 'success',
-          btnAccept: 'Visualizar pedido',
-          btnCancel: 'Cerrar'
-        }).then((confirmed) => {
-          if (confirmed) {
-            this.router.navigate(['/orders']);
-          }
-        });
+    this.salesService.createSale(orderCompleted).subscribe({
+      next: () => {
+        const saleAmount = parseInt(orderCompleted.total);
+        const registeredInBox = this.boxService.registerSale(saleAmount, orderCompleted.paymentmethod);
+
+        if (registeredInBox) {
+          Alert('Completado', 'Venta registrada con éxito', 'success');
+        } else {
+          Alert('Completado', 'Venta registrada con éxito. No hay caja abierta.', 'warning');
+        }
       },
-      error: (error) => {
-        Alert('Error al crear la orden', 'Por favor intente nuevamente más tarde.', 'error');
-        console.error('Error al crear la orden:', error);
+      error: (error: any) => {
+        Alert('Error', 'No se pudo registrar la venta. Intente nuevamente.', 'error');
       }
-    });
-    
+    })
+
     this.resetOrder();
   }
 
@@ -190,29 +188,65 @@ export class Sales implements OnInit  {
     this.change = null;
   }
 
-  addCartProduct(product: {name: string, price: number}) {
+  addCartProduct(product: { name: string, price: number, stock: number }) {
     const existingItem = this.cart.find(item => item.name === product.name);
     if (existingItem) {
+      if(existingItem.quantity >= product.stock) {
+        Alert('Stock insuficiente', `No hay suficiente stock de ${product.name}`, 'warning');
+        return;
+      }
+
       existingItem.quantity++;
       existingItem.total = existingItem.price * existingItem.quantity;
     } else {
-      this.cart.push({...product, quantity: 1, total: product.price});
+      this.cart.push({ ...product, quantity: 1, total: product.price });
     }
   }
 
-  increaseQuantity(item: {name: string, price: number, quantity: number, total: number}) {
+  increaseQuantity(item: { name: string, price: number, quantity: number, total: number, stock?: number }) {
+    if (item.stock !== undefined && item.quantity >= item.stock) {
+      Alert('Stock insuficiente', `No hay suficiente stock de ${item.name}. Disponible: ${item.stock}`, 'warning');
+      return;
+    }
     item.quantity++;
     item.total = item.price * item.quantity;
   }
 
-  decreaseQuantity(item: {name: string, price: number, quantity: number, total: number}) {
+  decreaseQuantity(item: { name: string, price: number, quantity: number, total: number }) {
     if (item.quantity > 1) {
       item.quantity--;
       item.total = item.price * item.quantity;
     }
   }
 
-  removeFromCart(item: {name: string, price: number, quantity: number, total: number}) {
+  updateQuantity(item: { name: string, price: number, quantity: number, total: number, stock?: number }, newQuantity: number) {
+    if (isNaN(newQuantity) || newQuantity === null || newQuantity === undefined) {
+      item.quantity = 1;
+      item.total = item.price * item.quantity;
+      return;
+    }
+
+    const quantity = Math.floor(Math.abs(Number(newQuantity)));
+
+    if (quantity < 1) {
+      item.quantity = 1;
+      item.total = item.price * item.quantity;
+      Alert('Cantidad inválida', 'La cantidad mínima es 1', 'warning');
+      return;
+    }
+
+    if (item.stock !== undefined && quantity > item.stock) {
+      item.quantity = item.stock;
+      item.total = item.price * item.quantity;
+      Alert('Stock insuficiente', `Solo hay ${item.stock} unidades disponibles de ${item.name}`, 'warning');
+      return;
+    }
+
+    item.quantity = quantity;
+    item.total = item.price * item.quantity;
+  }
+
+  removeFromCart(item: { name: string, price: number, quantity: number, total: number, stock?: number }) {
     const index = this.cart.indexOf(item);
     if (index > -1) {
       this.cart.splice(index, 1);
@@ -233,17 +267,17 @@ export class Sales implements OnInit  {
       const blob = new Blob([uint8Array], { type: 'image/jpeg' });
       return URL.createObjectURL(blob);
     }
-    
+
     if (Array.isArray(imageBuffer)) {
       const uint8Array = new Uint8Array(imageBuffer);
       const blob = new Blob([uint8Array], { type: 'image/jpeg' });
       return URL.createObjectURL(blob);
     }
-    
+
     if (typeof imageBuffer === 'string') {
       return imageBuffer;
     }
-    
+
     return '';
   }
 }

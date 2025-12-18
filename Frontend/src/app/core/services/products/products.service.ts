@@ -38,6 +38,7 @@ export class ProductsService {
     formData.append('earnings', product.earnings.toString());
     formData.append('category', product.category);
     formData.append('availability', product.availability.toString());
+    formData.append('stock', product.stock.toString());
     
     if (product.img) {
       formData.append('img', product.img);

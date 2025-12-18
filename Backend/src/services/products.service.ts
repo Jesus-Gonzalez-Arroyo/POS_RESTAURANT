@@ -12,19 +12,22 @@ export const getProductById = async (id: number): Promise<Product | null> => {
 }
 
 
-export const insertProduct = async (name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], img?: Buffer): Promise<any> => {
+export const insertProduct = async (name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], stock: Product['stock'], img?: Buffer): Promise<any> => {
   if (Number(price) < 0) {
     throw new Error('El precio no puede ser negativo')
   }
   if (Number(earnings) < 0) {
     throw new Error('Las ganancias no pueden ser negativas')
   }
+  if (Number(stock) < 0) {
+    throw new Error('El stock no puede ser negativo')
+  }
 
-  const res = await pool.query('INSERT INTO products(name, price, earnings, category, availability, img) VALUES($1, $2, $3, $4, $5, $6) RETURNING *', [name, price, earnings, category, availability, img || null])
+  const res = await pool.query('INSERT INTO products(name, price, earnings, category, availability, stock, img) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *', [name, price, earnings, category, availability, stock, img || null])
   return res.rows[0]
 }
 
-export const productUpdate = async (id: Product['id'], name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], img?: Buffer): Promise<any> => {
+export const productUpdate = async (id: Product['id'], name: Product['name'], price: Product['price'], earnings: Product['earnings'], category: Product['category'], availability: Product['availability'], stock: Product['stock'], img?: Buffer): Promise<any> => {
   const existingProduct = await getProductById(id)
   if (!existingProduct) {
     throw new Error(`Producto con ID ${id} no encontrado`)
@@ -36,13 +39,16 @@ export const productUpdate = async (id: Product['id'], name: Product['name'], pr
   if (Number(earnings) < 0) {
     throw new Error('Las ganancias no pueden ser negativas')
   }
+  if (Number(stock) < 0) {
+    throw new Error('El stock no puede ser negativo')
+  }
 
   // Si se proporciona una nueva imagen, actualizarla; si no, mantener la existente
   if (img !== undefined) {
-    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5, img=$6 WHERE id=$7 RETURNING *', [name, price, earnings, category, availability, img, id])
+    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5, stock=$6, img=$7 WHERE id=$8 RETURNING *', [name, price, earnings, category, availability, stock, img, id])
     return res.rows[0]
   } else {
-    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5 WHERE id=$6 RETURNING *', [name, price, earnings, category, availability, id])
+    const res = await pool.query('UPDATE products SET name=$1, price=$2, earnings=$3, category=$4, availability=$5, stock=$6 WHERE id=$7 RETURNING *', [name, price, earnings, category, availability, stock, id])
     return res.rows[0]
   }
 }

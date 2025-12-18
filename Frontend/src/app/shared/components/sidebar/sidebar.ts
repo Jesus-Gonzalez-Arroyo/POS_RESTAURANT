@@ -28,7 +28,7 @@ export class Sidebar implements OnInit, OnDestroy {
       expanded: false,
       submenu: [
         { name: 'Ventas', path: '/sales', icon: 'sales' },
-        { name: 'Órdenes', path: '/orders', icon: 'orders' },
+        { name: 'Devoluciones', path: '/returning', icon: 'returning' },
         { name: 'Caja', path: '/cash-register', icon: 'cash' }
       ]
     },
