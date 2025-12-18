@@ -20,6 +20,7 @@ export class Products implements OnInit {
   searchTerm = '';
   selectedCategory = 'Todas';
   selectedAvailability = 'Todas';
+  selectedStay = 'Todas';
   loading = false;
   error: string | null = null;
   categoriesList: Category[] = [];
@@ -31,6 +32,7 @@ export class Products implements OnInit {
     category: '',
     availability: true,
     stock: 0,
+    stay: '',
     img: null as File | null
   };
   
@@ -106,6 +108,14 @@ export class Products implements OnInit {
     return ['Todas', ...uniqueAvailabilities];
   }
 
+  // Obtener estancias únicas
+  get stays() {
+    const uniqueStays = [...new Set(this.allProducts
+      .map(product => product.stay)
+      .filter(stay => stay && stay.trim() !== ''))]; // Filtrar valores vacíos o nulos
+    return ['Todas', ...uniqueStays];
+  }
+
   // Obtener productos filtrados (sin paginación)
   get filteredProducts() {
     let filteredProducts = this.allProducts;
@@ -129,6 +139,13 @@ export class Products implements OnInit {
       const isAvailable = this.selectedAvailability === 'Disponible';
       filteredProducts = filteredProducts.filter(product => 
         product.availability === isAvailable
+      );
+    }
+
+    // Filtrar por estancia
+    if (this.selectedStay !== 'Todas') {
+      filteredProducts = filteredProducts.filter(product => 
+        product.stay === this.selectedStay
       );
     }
 
@@ -206,6 +223,7 @@ export class Products implements OnInit {
         category: existingProduct.category,
         availability: existingProduct.availability,
         stock: existingProduct.stock,
+        stay: existingProduct.stay || '',
         img: null
       };
       
@@ -238,6 +256,7 @@ export class Products implements OnInit {
     this.searchTerm = '';
     this.selectedCategory = 'Todas';
     this.selectedAvailability = 'Todas';
+    this.selectedStay = 'Todas';
     this.currentPage = 1;
   }
 
@@ -296,6 +315,7 @@ export class Products implements OnInit {
         category: this.newProduct.category,
         availability: this.newProduct.availability,
         stock: this.newProduct.stock,
+        stay: this.newProduct.stay,
         img: this.selectedFile || undefined
       };
 
@@ -325,8 +345,11 @@ export class Products implements OnInit {
         category: this.newProduct.category,
         availability: this.newProduct.availability,
         stock: this.newProduct.stock,
+        stay: this.newProduct.stay,
         img: this.selectedFile || undefined
       };
+
+      console.log('Updating product with data:', productData);
       
       this.productsService.updateProduct(this.editingProductId, productData).subscribe({
         next: (response) => {
@@ -368,6 +391,7 @@ export class Products implements OnInit {
       category: '',
       availability: true,
       stock: 0,
+      stay: '',
       img: null as File | null
     };
     this.isEditMode = false;

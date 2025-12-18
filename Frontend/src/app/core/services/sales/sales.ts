@@ -7,7 +7,7 @@ export interface Sale {
   customer: string
   total: string
   paymentmethod: string
-  products: Array<{ name: string; price: number; quantity: number }>
+  products: Array<{ id: number; name: string; price: number; quantity: number }>
   time: Date
   ganancias: string
 }
