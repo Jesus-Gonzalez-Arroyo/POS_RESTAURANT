@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Sales, Sale } from '../../core/services/sales/sales';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
+import { Returns } from '../../core/services/returns/returns';
 
 interface SaleWithId extends Sale {
   id: number;
 }
 
 interface ReturnProduct {
+  id: number;
   name: string;
   price: number;
   quantity: number;
@@ -31,8 +33,15 @@ export class Returning implements OnInit {
   returnProducts: ReturnProduct[] = [];
   returnReason: string = '';
   searchTerm: string = '';
+  loading: boolean = true;
 
-  constructor(private salesService: Sales) {}
+  // Paginación
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  Math = Math;
+
+  constructor(private salesService: Sales, private returnsService: Returns) { }
 
   ngOnInit() {
     this.loadSales();
@@ -41,12 +50,13 @@ export class Returning implements OnInit {
   loadSales() {
     this.salesService.getAllSales().subscribe({
       next: (sales: any[]) => {
-        // Agregar ID temporal basado en el índice
         this.allSales = sales.map((sale, index) => ({
           ...sale,
           id: index + 1
         }));
         this.filteredSales = [...this.allSales];
+        this.totalItems = this.allSales.length;
+        this.loading = false;
       },
       error: (error) => {
         Alert('Error', 'No se pudieron cargar las ventas', 'error');
@@ -58,23 +68,28 @@ export class Returning implements OnInit {
   filterSales() {
     if (!this.searchTerm.trim()) {
       this.filteredSales = [...this.allSales];
-      return;
+    } else {
+      const term = this.searchTerm.toLowerCase();
+      this.filteredSales = this.allSales.filter(sale =>
+        sale.customer.toLowerCase().includes(term)
+      );
     }
 
-    const term = this.searchTerm.toLowerCase();
-    this.filteredSales = this.allSales.filter(sale => 
-      sale.customer.toLowerCase().includes(term)
-    );
+    this.totalItems = this.filteredSales.length;
+    this.currentPage = 1;
   }
 
   clearSearch() {
     this.searchTerm = '';
     this.filteredSales = [...this.allSales];
+    this.totalItems = this.filteredSales.length;
+    this.currentPage = 1;
   }
 
   selectSale(sale: SaleWithId) {
     this.selectedSale = sale;
     this.returnProducts = sale.products.map(product => ({
+      id: product.id,
       name: product.name,
       price: product.price,
       quantity: product.quantity,
@@ -101,9 +116,9 @@ export class Returning implements OnInit {
   }
 
   get canProcessReturn(): boolean {
-    return this.selectedProductsCount > 0 && 
-           this.returnReason.trim().length > 0 &&
-           this.returnProducts.every(p => !p.selected || (p.returnQuantity > 0 && p.returnQuantity <= p.quantity));
+    return this.selectedProductsCount > 0 &&
+      this.returnReason.trim().length > 0 &&
+      this.returnProducts.every(p => !p.selected || (p.returnQuantity > 0 && p.returnQuantity <= p.quantity));
   }
 
   processReturn() {
@@ -130,37 +145,43 @@ export class Returning implements OnInit {
   }
 
   confirmReturn() {
-    // Aquí se implementaría la lógica para:
-    // 1. Registrar la devolución en la base de datos
-    // 2. Actualizar el stock de los productos
-    // 3. Procesar el reembolso si es necesario
-    
+    if (!this.selectedSale) {
+      Alert('Error', 'No hay una venta seleccionada', 'error');
+      return;
+    }
+
     const returnData = {
-      saleId: this.selectedSale?.id,
-      customer: this.selectedSale?.customer,
+      saleId: this.selectedSale.id,
+      customer: this.selectedSale.customer,
       products: this.returnProducts
         .filter(p => p.selected)
         .map(p => ({
+          id: p.id,
           name: p.name,
           price: p.price,
           quantity: p.returnQuantity
         })),
       total: this.returnTotal,
       reason: this.returnReason,
-      date: new Date()
     };
 
-    console.log('Datos de devolución:', returnData);
+    this.returnsService.createReturn(returnData).subscribe({
+      next: (response) => {
+        console.log('Devolución procesada:', response);
+        Alert(
+          'Devolución Procesada',
+          `Se ha procesado la devolución exitosamente. Total devuelto: $${this.formatPrice(this.returnTotal)}`,
+          'success'
+        );
 
-    // Simulación de guardado exitoso
-    Alert(
-      'Devolución Procesada', 
-      `Se ha procesado la devolución exitosamente. Total devuelto: $${this.formatPrice(this.returnTotal)}`,
-      'success'
-    );
-
-    this.cancelReturn();
-    this.loadSales();
+        this.cancelReturn();
+        this.loadSales();
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudo procesar la devolución', 'error');
+        console.error('Error al procesar devolución:', error);
+      }
+    });
   }
 
   formatPrice(price: number | string): string {
@@ -169,12 +190,77 @@ export class Returning implements OnInit {
 
   formatDate(date: Date | string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('es-ES', { 
-      year: 'numeric', 
-      month: 'short', 
+    return d.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // Obtener ventas paginadas
+  get paginatedSales() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredSales.slice(startIndex, endIndex);
+  }
+
+  // Obtener número total de páginas
+  get totalPages() {
+    return Math.ceil(this.totalItems / this.itemsPerPage);
+  }
+
+  // Obtener array de páginas para la paginación
+  get pages() {
+    const maxPages = 5;
+    const total = this.totalPages;
+
+    if (total <= maxPages) {
+      return Array(total).fill(0).map((_, i) => i + 1);
+    }
+
+    const current = this.currentPage;
+    const pages = [];
+
+    if (current <= 3) {
+      for (let i = 1; i <= 4; i++) pages.push(i);
+      pages.push(total);
+    } else if (current >= total - 2) {
+      pages.push(1);
+      for (let i = total - 3; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push(current - 1);
+      pages.push(current);
+      pages.push(current + 1);
+      pages.push(total);
+    }
+
+    return pages;
+  }
+
+  // Navegación de páginas
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  // Cambiar cantidad de elementos por página
+  changeItemsPerPage() {
+    this.currentPage = 1;
   }
 }
