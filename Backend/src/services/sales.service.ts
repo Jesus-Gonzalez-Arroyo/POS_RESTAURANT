@@ -16,8 +16,8 @@ export const createSale = async (sale: SaleCreate) => {
         const ganancias = products.reduce((acc: number, product: any) => acc + (parseInt(product.earnings) * product.quantity), 0).toString();
         
         const res = await client.query(
-            'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [customer, total, paymentmethod, JSON.stringify(products), time, ganancias]
+            'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, timezone(\'America/Bogota\', NOW()), $5) RETURNING *',
+            [customer, total, paymentmethod, JSON.stringify(products), ganancias]
         );
         
         await descountStock(client, products);
