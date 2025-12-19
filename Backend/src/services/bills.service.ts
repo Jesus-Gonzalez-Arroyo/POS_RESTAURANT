@@ -9,7 +9,7 @@ export const getAllBills = async (): Promise<Bill[]> => {
 export const createBill = async (bill: Omit<Bill, 'id'>): Promise<Bill> => {
     const { description, amount, category, date, notes, paymentmethod, createdby } = bill;
     const res = await pool.query(
-        "INSERT INTO bills (description, amount, category, date, notes, paymentmethod, createdby) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+        "INSERT INTO bills (description, amount, category, date, notes, paymentmethod, createdby) VALUES ($1, $2, $3, timezone('America/Bogota', $4::timestamp), $5, $6, $7) RETURNING *",
         [description, amount, category, date, notes, paymentmethod, createdby]
     );
     return res.rows[0];
@@ -22,7 +22,7 @@ export const updateBill = async (id: number, billData: Partial<Omit<Bill, 'id'>>
             description = $1,
             amount = $2,
             category = $3,
-            date = $4,
+            date = timezone('America/Bogota', $4::timestamp),
             notes = $5,
             paymentmethod = $6,
             createdby = $7

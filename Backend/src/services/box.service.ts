@@ -7,7 +7,7 @@ export const getAllCashRegisters = async (): Promise<CashRegister[]> => {
 }
 
 export const saveCashRegister = async (registerData: CashRegister): Promise<CashRegister> => {
-    const res = await pool.query("INSERT INTO box (openingdate, closingdate, openingamount, closingamount, expectedamount, difference, totalsales, totalexpenses, cashsales, cardsales, transfersales, status, openedby, closedby, transactions, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *", [
+    const res = await pool.query("INSERT INTO box (openingdate, closingdate, openingamount, closingamount, expectedamount, difference, totalsales, totalexpenses, cashsales, cardsales, transfersales, status, openedby, closedby, transactions, notes) VALUES (timezone('America/Bogota', $1::timestamp), timezone('America/Bogota', $2::timestamp), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *", [
         registerData.openingdate,
         registerData.closingdate || null,
         registerData.openingamount,
@@ -31,7 +31,7 @@ export const saveCashRegister = async (registerData: CashRegister): Promise<Cash
 export const updateCashRegister = async (id: string, registerData: Partial<CashRegister>): Promise<CashRegister> => {
     const res = await pool.query(
         `UPDATE box SET 
-            closingdate = $1,
+            closingdate = timezone('America/Bogota', $1::timestamp),
             closingamount = $2,
             difference = $3,
             totalsales = $4,

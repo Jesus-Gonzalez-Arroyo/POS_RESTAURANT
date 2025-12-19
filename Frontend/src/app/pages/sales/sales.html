@@ -171,12 +171,12 @@
         </div>
     </div>
     <div class="w-full lg:w-[30%] lg:relative">
-        <div class="p-4 md:p-7 bg-white rounded-lg shadow h-auto lg:h-[calc(100vh-7.5rem)] overflow-y-auto">
+        <div class="p-4 md:p-7 bg-white rounded-lg shadow h-auto lg:h-[calc(100vh-7.5rem)] flex flex-col">
             <div>
                 <div class="text-gray-500 text-lg md:text-xl mb-4">Completar pedido</div>
             </div>
 
-            <div class="overflow-y-auto lg:mb-30">
+            <div class="flex-1 overflow-y-auto lg:mb-4">
                 <div class="mb-6">
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
@@ -280,20 +280,21 @@
                 </div>
             </div>
 
-            <div class="lg:absolute lg:bottom-7 lg:left-7 lg:right-7 bg-white mt-4 lg:mt-0">
-                <!-- Calcular cambio -->
-                <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div class="flex justify-between items-center">
-                        <span class="text-base md:text-lg font-semibold text-gray-700">Cambio:</span>
-                        <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(change !== null ? change - orderTotal : 0) }}</span>
-                    </div>
-                </div>
-
+            <!-- Sección inferior con totales y botón - siempre visible -->
+            <div class="bg-white border-t border-gray-200 pt-4 mt-4 flex-shrink-0">
                 <!-- Total de la orden -->
-                <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg">
                     <div class="flex justify-between items-center">
                         <span class="text-base md:text-lg font-semibold text-gray-700">Total:</span>
                         <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(orderTotal) }}</span>
+                    </div>
+                </div>
+
+                <!-- Calcular cambio (solo si es efectivo) -->
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo'">
+                    <div class="flex justify-between items-center">
+                        <span class="text-base md:text-lg font-semibold text-gray-700">Cambio:</span>
+                        <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(change !== null ? change - orderTotal : 0) }}</span>
                     </div>
                 </div>
 

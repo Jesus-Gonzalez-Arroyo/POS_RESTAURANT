@@ -6,7 +6,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate": "ts-node src/scripts/runMigration.ts"
+    "migrate": "ts-node src/scripts/runMigration.ts",
+    "migrate:sales-time": "ts-node src/scripts/runMigration.ts 004_alter_sales_time_column.sql"
   },
   "keywords": [],
   "author": "",

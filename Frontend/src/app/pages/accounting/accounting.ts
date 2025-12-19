@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Sales, Sale } from '../../core/services/sales/sales';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { generateSaleReceipt, printDocument } from '../../shared/utils/printTemplates';
+import { getDate, getHours } from '../../shared/utils/formartDate';
 
 @Component({
   selector: 'app-accounting',
@@ -273,5 +274,10 @@ export class Accounting implements OnInit {
     }
 
     return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800';
+  }
+
+
+  modifyTime(dateString: string | Date): string {
+    return getHours(dateString);
   }
 }

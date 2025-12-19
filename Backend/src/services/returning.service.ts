@@ -85,20 +85,32 @@ export const processReturn = async (returnData: ReturnData) => {
         const newTotal = parseFloat(originalSale.total) - total;
         const newGanancias = parseFloat(originalSale.ganancias) - returnedEarnings;
         
-        await client.query(
-            `UPDATE sales 
-             SET products = $1, total = $2, ganancias = $3
-             WHERE id = $4`,
-            [JSON.stringify(updatedProducts), newTotal.toString(), newGanancias.toString(), saleId]
-        );
+        // Verificar si se devolvieron todos los productos
+        if (updatedProducts.length === 0) {
+            await client.query(
+                'DELETE FROM sales WHERE id = $1',
+                [saleId]
+            );
+            
+            console.log(`Venta ID ${saleId} eliminada completamente - Todos los productos fueron devueltos`);
+        } else {
+            await client.query(
+                `UPDATE sales 
+                 SET products = $1, total = $2, ganancias = $3
+                 WHERE id = $4`,
+                [JSON.stringify(updatedProducts), newTotal.toString(), newGanancias.toString(), saleId]
+            );
+            
+            console.log(`Venta ID ${saleId} actualizada - Productos restantes: ${updatedProducts.length}`);
+        }
         
         // Registrar la devolución en la base de datos (tabla returns)
-       /*  const res = await client.query(
+        const res = await client.query(
             `INSERT INTO returns (sale_id, customer, products, total, reason, date) 
-             VALUES ($1, $2, $3, $4, $5, NOW()) 
+             VALUES ($1, $2, $3, $4, $5, timezone('America/Bogota', NOW())) 
              RETURNING *`,
             [saleId, customer, JSON.stringify(products), total, reason]
-        ); */
+        );
         
         // Restaurar el stock de los productos devueltos
         await restoreStock(client, products);
@@ -107,13 +119,16 @@ export const processReturn = async (returnData: ReturnData) => {
         
         return {
             success: true,
-            message: 'Devolución procesada exitosamente',
-            /* return: res.rows[0], */
-            updatedSale: {
+            message: updatedProducts.length === 0 
+                ? 'Devolución procesada exitosamente. Venta eliminada completamente.' 
+                : 'Devolución procesada exitosamente',
+            return: res.rows[0],
+            saleDeleted: updatedProducts.length === 0,
+            updatedSale: updatedProducts.length > 0 ? {
                 newTotal: newTotal,
                 newGanancias: newGanancias,
                 remainingProducts: updatedProducts.length
-            }
+            } : null
         };
     } catch (error) {
         await client.query('ROLLBACK');

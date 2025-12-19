@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { Category, PaymentMethod } from '../../core/models/settings.interface';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
-import { formatDate } from '../../shared/utils/formartDate';
+import { getDate } from '../../shared/utils/formartDate';
 import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
 import { Categories as CategoriesService } from '../../core/services/categories/categories';
 
@@ -321,6 +321,6 @@ export class Categories implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return formatDate(date);
+    return getDate(date);
   }
 }

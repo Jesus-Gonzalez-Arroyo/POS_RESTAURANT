@@ -34,6 +34,12 @@ export class Returning implements OnInit {
   returnReason: string = '';
   searchTerm: string = '';
   loading: boolean = true;
+  
+  // Devoluciones
+  allReturns: any[] = [];
+  loadingReturns: boolean = false;
+  selectedReturn: any = null;
+  showReturnModal: boolean = false;
 
   // Paginación
   currentPage = 1;
@@ -45,14 +51,39 @@ export class Returning implements OnInit {
 
   ngOnInit() {
     this.loadSales();
+    this.loadReturns();
+  }
+
+  loadReturns() {
+    this.loadingReturns = true;
+    this.returnsService.getAllReturns().subscribe({
+      next: (returns: any[]) => {
+        this.allReturns = returns;
+        this.loadingReturns = false;
+      },
+      error: (error) => {
+        Alert('Error', 'No se pudieron cargar las devoluciones', 'error');
+        console.error('Error al cargar devoluciones:', error);
+        this.loadingReturns = false;
+      }
+    });
+  }
+
+  openReturnModal(returnData: any) {
+    this.selectedReturn = returnData;
+    this.showReturnModal = true;
+  }
+
+  closeReturnModal() {
+    this.selectedReturn = null;
+    this.showReturnModal = false;
   }
 
   loadSales() {
     this.salesService.getAllSales().subscribe({
       next: (sales: any[]) => {
         this.allSales = sales.map((sale, index) => ({
-          ...sale,
-          id: index + 1
+          ...sale
         }));
         this.filteredSales = [...this.allSales];
         this.totalItems = this.allSales.length;
@@ -87,6 +118,7 @@ export class Returning implements OnInit {
   }
 
   selectSale(sale: SaleWithId) {
+    console.log('Venta seleccionada para devolución:', sale);
     this.selectedSale = sale;
     this.returnProducts = sale.products.map(product => ({
       id: product.id,
@@ -165,9 +197,10 @@ export class Returning implements OnInit {
       reason: this.returnReason,
     };
 
+    console.log('Datos de devolución a enviar:', returnData);
+
     this.returnsService.createReturn(returnData).subscribe({
       next: (response) => {
-        console.log('Devolución procesada:', response);
         Alert(
           'Devolución Procesada',
           `Se ha procesado la devolución exitosamente. Total devuelto: $${this.formatPrice(this.returnTotal)}`,
@@ -176,6 +209,7 @@ export class Returning implements OnInit {
 
         this.cancelReturn();
         this.loadSales();
+        this.loadReturns();
       },
       error: (error) => {
         Alert('Error', 'No se pudo procesar la devolución', 'error');
@@ -190,12 +224,13 @@ export class Returning implements OnInit {
 
   formatDate(date: Date | string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('es-ES', {
+    return d.toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Bogota'
     });
   }
 
