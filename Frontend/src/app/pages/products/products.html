@@ -87,7 +87,8 @@
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ID</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Imagen</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nombre</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Precio</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Precio de compra</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Precio de venta</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ganancia</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Stock</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Categoría</th>
@@ -102,7 +103,7 @@
                     [class.bg-gray-50]="i % 2 === 0">
                     <!-- ID -->
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium text-gray-900">{{ product.id }}</span>
+                        <span class="text-sm font-medium text-gray-900">{{ product.id_product }}</span>
                     </td>
                     
                     <!-- Imagen -->
@@ -131,7 +132,12 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-bold text-gray-900">${{ formatPriceCustom(product.price) }}</div>
                     </td>
-                    
+
+                    <!-- Precio -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-bold text-gray-900">${{ formatPriceCustom(product.price_sales) }}</div>
+                    </td>
+
                     <!-- Ganancia -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
@@ -193,7 +199,7 @@
                                 </svg>
                             </button>
                             <button 
-                                (click)="deleteProduct(product.id)"
+                                (click)="deleteProduct(product.id_product)"
                                 class="px-3 py-2 text-red-600 hover:text-red-800 transition-colors duration-150"
                                 title="Eliminar producto">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -216,7 +222,7 @@
 
                 <!-- Sin resultados -->
                 <tr *ngIf="!loading && !error && allProducts.length === 0">
-                    <td colspan="9" class="px-6 py-12 text-center">
+                    <td colspan="11" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
                             <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 font-medium text-lg">No se encontraron productos</p>
@@ -308,6 +314,28 @@
 
     <app-modal [show]="showModal" [title]="modalTitle" (close)="showModal = false">
         <form class="grid grid-cols-2 gap-4 p-4 max-h-[calc(100vh-12rem)] overflow-y-auto" (ngSubmit)="saveProduct()">
+            <!-- ID del producto -->
+            <div class="col-span-2">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productIdProduct">
+                    ID del Producto *
+                </label>
+                <input 
+                    id="productIdProduct"
+                    type="text" 
+                    [(ngModel)]="newProduct.id_product"
+                    name="productIdProduct"
+                    placeholder="Ingrese el ID, código de barras o SKU del producto"
+                    (blur)="validateField('id_product')"
+                    [class.border-red-500]="formTouched.id_product && formErrors.id_product"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                />
+                <p *ngIf="formTouched.id_product && formErrors.id_product" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.id_product }}
+                </p>
+                <p *ngIf="!formErrors.id_product" class="text-xs text-gray-500 mt-1">Identificador único como código de barras, SKU, etc.</p>
+            </div>
+
             <!-- Nombre del producto -->
             <div class="col-span-2">
                 <label class="block text-gray-700 text-sm font-medium mb-2" for="productName">
@@ -319,45 +347,81 @@
                     [(ngModel)]="newProduct.name"
                     name="productName"
                     placeholder="Ingrese el nombre del producto"
+                    (blur)="validateField('name')"
+                    [class.border-red-500]="formTouched.name && formErrors.name"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 />
+                <p *ngIf="formTouched.name && formErrors.name" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.name }}
+                </p>
             </div>
 
-            <!-- Precio -->
+            <!-- Precio de compra -->
             <div>
                 <label class="block text-gray-700 text-sm font-medium mb-2" for="productPrice">
-                    Precio *
+                    Precio de Compra *
                 </label>
                 <input 
                     id="productPrice"
-                    type="text" 
+                    type="number" 
                     [(ngModel)]="newProduct.price"
+                    (ngModelChange)="calculateEarnings()"
+                    (blur)="validateField('price')"
                     name="productPrice"
                     placeholder="0.00"
                     min="0"
                     step="0.01"
+                    [class.border-red-500]="formTouched.price && formErrors.price"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 />
+                <p *ngIf="formTouched.price && formErrors.price" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.price }}
+                </p>
+                <p *ngIf="!formErrors.price" class="text-xs text-gray-500 mt-1">Precio al que compras el producto</p>
             </div>
 
-            <!-- Ganancia -->
+            <!-- Precio de venta -->
             <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2" for="productEarnings">
-                    Ganancia *
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="productPriceSales">
+                    Precio de Venta *
                 </label>
                 <input 
-                    id="productEarnings"
-                    type="text" 
-                    [(ngModel)]="newProduct.earnings"
-                    name="productEarnings"
+                    id="productPriceSales"
+                    type="number" 
+                    [(ngModel)]="newProduct.price_sales"
+                    (ngModelChange)="calculateEarnings()"
+                    (blur)="validateField('price_sales')"
+                    name="productPriceSales"
                     placeholder="0.00"
                     min="0"
                     step="0.01"
+                    [class.border-red-500]="formTouched.price_sales && formErrors.price_sales"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 />
+                <p *ngIf="formTouched.price_sales && formErrors.price_sales" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.price_sales }}
+                </p>
+                <p *ngIf="!formErrors.price_sales" class="text-xs text-gray-500 mt-1">Precio al que vendes el producto</p>
+            </div>
+
+            <!-- Ganancia (calculada automáticamente) -->
+            <div class="col-span-2">
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    Ganancia (Calculada Automáticamente)
+                </label>
+                <div class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between">
+                    <span class="text-gray-700 font-medium">
+                        {{ newProduct.earnings !== null ? ('$' + formatPriceCustom(newProduct.earnings)) : '$0.00' }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                        {{ newProduct.earnings !== null && newProduct.earnings > 0 ? '✓ Ganancia positiva' : 
+                           newProduct.earnings !== null && newProduct.earnings < 0 ? '⚠ Ganancia negativa' : '' }}
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Precio de venta - Precio de compra</p>
             </div>
 
             <!-- Categoría -->
@@ -369,14 +433,19 @@
                     id="productCategory"
                     [(ngModel)]="newProduct.category"
                     name="productCategory"
+                    (blur)="validateField('category')"
+                    [class.border-red-500]="formTouched.category && formErrors.category"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                    placeholder="Seleccionar categoría"
                 >
+                    <option value="" disabled selected>Seleccionar categoría</option>
                     <div *ngFor="let category of categoriesList">
                         <option *ngIf="category.is_active" [value]="category.name">{{ category.name }}</option>
                     </div>
                 </select>
+                <p *ngIf="formTouched.category && formErrors.category" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.category }}
+                </p>
             </div>
 
             <!-- Disponibilidad -->
@@ -409,10 +478,15 @@
                     placeholder="0"
                     min="0"
                     step="1"
+                    (blur)="validateField('stock')"
+                    [class.border-red-500]="formTouched.stock && formErrors.stock"
                     class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                 />
-                <p class="text-xs text-gray-500 mt-1">Ingrese la cantidad disponible en inventario</p>
+                <p *ngIf="formTouched.stock && formErrors.stock" class="text-xs text-red-600 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ formErrors.stock }}
+                </p>
+                <p *ngIf="!formErrors.stock" class="text-xs text-gray-500 mt-1">Ingrese la cantidad disponible en inventario</p>
             </div>
 
             <!-- Estancia del producto -->

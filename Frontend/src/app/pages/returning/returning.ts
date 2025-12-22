@@ -5,6 +5,7 @@ import { Sales, Sale } from '../../core/services/sales/sales';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { Returns } from '../../core/services/returns/returns';
+import { idText } from 'typescript';
 
 interface SaleWithId extends Sale {
   id: number;
@@ -12,8 +13,10 @@ interface SaleWithId extends Sale {
 
 interface ReturnProduct {
   id: number;
+  id_product: number;
   name: string;
   price: number;
+  price_sales: number;
   quantity: number;
   selected: boolean;
   returnQuantity: number;
@@ -34,17 +37,23 @@ export class Returning implements OnInit {
   returnReason: string = '';
   searchTerm: string = '';
   loading: boolean = true;
-  
+
   // Devoluciones
   allReturns: any[] = [];
   loadingReturns: boolean = false;
   selectedReturn: any = null;
   showReturnModal: boolean = false;
 
-  // Paginación
-  currentPage = 1;
-  itemsPerPage = 10;
-  totalItems = 0;
+  // Paginación para Ventas
+  salesCurrentPage = 1;
+  salesItemsPerPage = 5;
+  salesTotalItems = 0;
+
+  // Paginación para Devoluciones
+  returnsCurrentPage = 1;
+  returnsItemsPerPage = 5;
+  returnsTotalItems = 0;
+
   Math = Math;
 
   constructor(private salesService: Sales, private returnsService: Returns) { }
@@ -58,7 +67,12 @@ export class Returning implements OnInit {
     this.loadingReturns = true;
     this.returnsService.getAllReturns().subscribe({
       next: (returns: any[]) => {
-        this.allReturns = returns;
+        console.log('Devoluciones cargadas:', returns);
+        this.allReturns = returns.map(ret => ({
+          ...ret,
+          products: typeof ret.products === 'string' ? JSON.parse(ret.products) : ret.products
+        }));
+        this.returnsTotalItems = this.allReturns.length;
         this.loadingReturns = false;
       },
       error: (error) => {
@@ -83,10 +97,11 @@ export class Returning implements OnInit {
     this.salesService.getAllSales().subscribe({
       next: (sales: any[]) => {
         this.allSales = sales.map((sale, index) => ({
-          ...sale
+          ...sale,
+          products: typeof sale.products === 'string' ? JSON.parse(sale.products) : sale.products
         }));
         this.filteredSales = [...this.allSales];
-        this.totalItems = this.allSales.length;
+        this.salesTotalItems = this.allSales.length;
         this.loading = false;
       },
       error: (error) => {
@@ -106,28 +121,33 @@ export class Returning implements OnInit {
       );
     }
 
-    this.totalItems = this.filteredSales.length;
-    this.currentPage = 1;
+    this.salesTotalItems = this.filteredSales.length;
+    this.salesCurrentPage = 1;
   }
 
   clearSearch() {
     this.searchTerm = '';
     this.filteredSales = [...this.allSales];
-    this.totalItems = this.filteredSales.length;
-    this.currentPage = 1;
+    this.salesTotalItems = this.filteredSales.length;
+    this.salesCurrentPage = 1;
   }
 
   selectSale(sale: SaleWithId) {
-    console.log('Venta seleccionada para devolución:', sale);
     this.selectedSale = sale;
-    this.returnProducts = sale.products.map(product => ({
+
+    const products = typeof sale.products === 'string' ? JSON.parse(sale.products) : sale.products;
+
+    this.returnProducts = products.map((product: any) => ({
       id: product.id,
+      id_product: product.id_product,
       name: product.name,
-      price: product.price,
+      price: Number(product.price) || 0,
+      price_sales: Number(product.price_sales) || 0,
       quantity: product.quantity,
       selected: false,
       returnQuantity: 1
     }));
+
     this.returnReason = '';
   }
 
@@ -144,7 +164,7 @@ export class Returning implements OnInit {
   get returnTotal(): number {
     return this.returnProducts
       .filter(p => p.selected)
-      .reduce((total, product) => total + (product.price * product.returnQuantity), 0);
+      .reduce((total, product) => total + (product.price_sales * product.returnQuantity), 0);
   }
 
   get canProcessReturn(): boolean {
@@ -189,8 +209,10 @@ export class Returning implements OnInit {
         .filter(p => p.selected)
         .map(p => ({
           id: p.id,
+          id_product: p.id_product,
           name: p.name,
           price: p.price,
+          price_sales: p.price_sales,
           quantity: p.returnQuantity
         })),
       total: this.returnTotal,
@@ -236,66 +258,59 @@ export class Returning implements OnInit {
 
   // Obtener ventas paginadas
   get paginatedSales() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
+    const startIndex = (this.salesCurrentPage - 1) * this.salesItemsPerPage;
+    const endIndex = startIndex + this.salesItemsPerPage;
     return this.filteredSales.slice(startIndex, endIndex);
   }
 
-  // Obtener número total de páginas
-  get totalPages() {
-    return Math.ceil(this.totalItems / this.itemsPerPage);
+  // Obtener devoluciones paginadas
+  get paginatedReturns() {
+    const startIndex = (this.returnsCurrentPage - 1) * this.returnsItemsPerPage;
+    const endIndex = startIndex + this.returnsItemsPerPage;
+    return this.allReturns.slice(startIndex, endIndex);
   }
 
-  // Obtener array de páginas para la paginación
-  get pages() {
-    const maxPages = 5;
-    const total = this.totalPages;
-
-    if (total <= maxPages) {
-      return Array(total).fill(0).map((_, i) => i + 1);
-    }
-
-    const current = this.currentPage;
-    const pages = [];
-
-    if (current <= 3) {
-      for (let i = 1; i <= 4; i++) pages.push(i);
-      pages.push(total);
-    } else if (current >= total - 2) {
-      pages.push(1);
-      for (let i = total - 3; i <= total; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      pages.push(current - 1);
-      pages.push(current);
-      pages.push(current + 1);
-      pages.push(total);
-    }
-
-    return pages;
+  // Obtener número total de páginas para ventas
+  get salesTotalPages() {
+    return Math.ceil(this.salesTotalItems / this.salesItemsPerPage);
   }
 
-  // Navegación de páginas
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
+  // Obtener número total de páginas para devoluciones
+  get returnsTotalPages() {
+    return Math.ceil(this.returnsTotalItems / this.returnsItemsPerPage);
+  }
+
+  // Navegación de páginas - Ventas
+  salesPreviousPage() {
+    if (this.salesCurrentPage > 1) {
+      this.salesCurrentPage--;
     }
   }
 
-  previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
+  salesNextPage() {
+    if (this.salesCurrentPage < this.salesTotalPages) {
+      this.salesCurrentPage++;
     }
   }
 
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
+  changeSalesItemsPerPage() {
+    this.salesCurrentPage = 1;
+  }
+
+  // Navegación de páginas - Devoluciones
+  returnsPreviousPage() {
+    if (this.returnsCurrentPage > 1) {
+      this.returnsCurrentPage--;
     }
   }
 
-  // Cambiar cantidad de elementos por página
-  changeItemsPerPage() {
-    this.currentPage = 1;
+  returnsNextPage() {
+    if (this.returnsCurrentPage < this.returnsTotalPages) {
+      this.returnsCurrentPage++;
+    }
+  }
+
+  changeReturnsItemsPerPage() {
+    this.returnsCurrentPage = 1;
   }
 }

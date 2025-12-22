@@ -100,7 +100,7 @@ export class Accounting implements OnInit {
           comparison = parseInt(a.total) - parseInt(b.total);
           break;
         case 'ganancias':
-          comparison = parseInt(a.ganancias) - parseInt(b.ganancias);
+          comparison = parseInt(a.ganancias || '0') - parseInt(b.ganancias || '0');
           break;
         case 'customer':
           comparison = a.customer.localeCompare(b.customer);
@@ -242,7 +242,7 @@ export class Accounting implements OnInit {
   }
 
   get totalProfits(): number {
-    const ganancias = this.filteredSales.reduce((sum, sale) => sum + parseInt(sale.ganancias), 0);
+    const ganancias = this.filteredSales.reduce((sum, sale) => sum + parseInt(sale.ganancias || '0'), 0);
     return ganancias;
   }
 

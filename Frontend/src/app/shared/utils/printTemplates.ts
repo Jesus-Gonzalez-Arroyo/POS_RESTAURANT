@@ -172,7 +172,7 @@ export function generateSaleReceipt(sale: Sale): string {
             <div class="product-item">
               <div class="product-line">
                 <span class="product-name">${p.quantity}x ${p.name}</span>
-                <span>$${formatPriceCustom(p.price * p.quantity)}</span>
+                <span>$${formatPriceCustom(p.price_sales * p.quantity)}</span>
               </div>
             </div>
           `).join('')}

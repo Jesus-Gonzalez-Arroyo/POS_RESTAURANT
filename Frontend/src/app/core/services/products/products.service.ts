@@ -22,12 +22,12 @@ export class ProductsService {
     return this.http.post<any>(this.baseUrl, formData);
   }
 
-  updateProduct(id: number, product: Omit<Product, 'id'>): Observable<any> {
+  updateProduct(id: string, product: Omit<Product, 'id'>): Observable<any> {
     const formData = this.createFormData(product);
     return this.http.put<any>(`${this.baseUrl}/${id}`, formData);
   }
   
-  deleteProduct(id: number): Observable<any> {
+  deleteProduct(id: string): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/${id}`);
   }
 
@@ -40,6 +40,8 @@ export class ProductsService {
     formData.append('availability', product.availability.toString());
     formData.append('stock', product.stock.toString());
     formData.append('stay', product.stay);
+    formData.append('id_product', product.id_product);
+    formData.append('price_sales', product.price_sales.toString());
     
     if (product.img) {
       formData.append('img', product.img);

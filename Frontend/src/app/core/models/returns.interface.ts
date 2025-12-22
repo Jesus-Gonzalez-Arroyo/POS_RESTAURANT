@@ -1,5 +1,6 @@
 interface ReturnProduct {
     id: number;
+    id_product: number;
     name: string;
     quantity: number;
     price: number;

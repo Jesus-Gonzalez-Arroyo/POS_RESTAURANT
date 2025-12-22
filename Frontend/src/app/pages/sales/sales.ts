@@ -28,7 +28,7 @@ export class Sales implements OnInit {
   scanInput = '';
   isLoading: boolean = false;
 
-  cart: {id: number, name: string, price: number, quantity: number, total: number, stock?: number }[] = [];
+  cart: {id: number, name: string, price_sales: number, quantity: number, total: number, stock?: number }[] = [];
 
   // Datos del cliente and order
   customerName = '';
@@ -122,7 +122,7 @@ export class Sales implements OnInit {
 
   // Calcular total de la compra
   get orderTotal(): number {
-    return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    return this.cart.reduce((total, item) => total + item.price_sales * item.quantity, 0);
   }
 
   // Finalizar compra
@@ -155,7 +155,6 @@ export class Sales implements OnInit {
       paymentmethod: this.paymentMethod,
       products: productsWithoutImages,
       time: new Date(),
-      ganancias: '0'
     }
 
     this.salesService.createSale(orderCompleted).subscribe({
@@ -234,7 +233,7 @@ export class Sales implements OnInit {
     this.scanInput = '';
   }
 
-  addCartProduct(product: { id: number, name: string, price: number, stock: number }) {
+  addCartProduct(product: { id: number, name: string, price_sales: number, stock: number }) {
     const existingItem = this.cart.find(item => item.name === product.name);
     if (existingItem) {
       if(existingItem.quantity >= product.stock) {
@@ -243,32 +242,32 @@ export class Sales implements OnInit {
       }
 
       existingItem.quantity++;
-      existingItem.total = existingItem.price * existingItem.quantity;
+      existingItem.total = existingItem.price_sales * existingItem.quantity;
     } else {
-      this.cart.push({ ...product, quantity: 1, total: product.price });
+      this.cart.push({ ...product, price_sales: product.price_sales, quantity: 1, total: product.price_sales });
     }
   }
 
-  increaseQuantity(item: { name: string, price: number, quantity: number, total: number, stock?: number }) {
+  increaseQuantity(item: { name: string, price_sales: number, quantity: number, total: number, stock?: number }) {
     if (item.stock !== undefined && item.quantity >= item.stock) {
       Alert('Stock insuficiente', `No hay suficiente stock de ${item.name}. Disponible: ${item.stock}`, 'warning');
       return;
     }
     item.quantity++;
-    item.total = item.price * item.quantity;
+    item.total = item.price_sales * item.quantity;
   }
 
-  decreaseQuantity(item: { name: string, price: number, quantity: number, total: number }) {
+  decreaseQuantity(item: { name: string, price_sales: number, quantity: number, total: number }) {
     if (item.quantity > 1) {
       item.quantity--;
-      item.total = item.price * item.quantity;
+      item.total = item.price_sales * item.quantity;
     }
   }
 
-  updateQuantity(item: { name: string, price: number, quantity: number, total: number, stock?: number }, newQuantity: number) {
+  updateQuantity(item: { name: string, price_sales: number, quantity: number, total: number, stock?: number }, newQuantity: number) {
     if (isNaN(newQuantity) || newQuantity === null || newQuantity === undefined) {
       item.quantity = 1;
-      item.total = item.price * item.quantity;
+      item.total = item.price_sales * item.quantity;
       return;
     }
 
@@ -276,23 +275,23 @@ export class Sales implements OnInit {
 
     if (quantity < 1) {
       item.quantity = 1;
-      item.total = item.price * item.quantity;
+      item.total = item.price_sales * item.quantity;
       Alert('Cantidad inválida', 'La cantidad mínima es 1', 'warning');
       return;
     }
 
     if (item.stock !== undefined && quantity > item.stock) {
       item.quantity = item.stock;
-      item.total = item.price * item.quantity;
+      item.total = item.price_sales * item.quantity;
       Alert('Stock insuficiente', `Solo hay ${item.stock} unidades disponibles de ${item.name}`, 'warning');
       return;
     }
 
     item.quantity = quantity;
-    item.total = item.price * item.quantity;
+    item.total = item.price_sales * item.quantity;
   }
 
-  removeFromCart(item: { id: number, name: string, price: number, quantity: number, total: number, stock?: number }) {
+  removeFromCart(item: { id: number, name: string, price_sales: number, quantity: number, total: number, stock?: number }) {
     const index = this.cart.findIndex(cartItem => cartItem.id === item.id);
     if (index > -1) {
       this.cart.splice(index, 1);
