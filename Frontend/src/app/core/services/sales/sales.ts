@@ -7,9 +7,9 @@ export interface Sale {
   customer: string
   total: string
   paymentmethod: string
-  products: Array<{ id: number; name: string; price: number; quantity: number }>
+  products: Array<{ id: number; name: string; price_sales: number; quantity: number }>
   time: Date
-  ganancias: string
+  ganancias?: string
 }
 
 @Injectable({

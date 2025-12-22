@@ -13,9 +13,9 @@ export const fetchAllProducts = async (req: Request, res: Response): Promise<voi
 
 export const addNewProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, price, earnings, category, availability, stock, stay } = req.body;
+    const { name, price, earnings, category, availability, stock, stay, id_product, price_sales } = req.body;
     const img = req.file ? req.file.buffer : undefined;
-    const newProduct = await insertProduct(name, price, earnings, category, availability, stock || 0, img, stay);
+    const newProduct = await insertProduct(name, price, earnings, category, availability, stock || 0, img, stay, id_product, price_sales);
     res.status(201).json({ message: 'Producto agregado con exito', product: newProduct });
   } catch (error) {
     console.error('Error agregando producto:', error);
@@ -26,9 +26,9 @@ export const addNewProduct = async (req: Request, res: Response): Promise<void> 
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, price, earnings, category, availability, stock, stay } = req.body;
+    const { name, price, earnings, category, availability, stock, stay, id_product, price_sales } = req.body;
     const img = req.file ? req.file.buffer : undefined;
-    const updatedProduct = await productUpdate(Number(id), name, price, earnings, category, availability, stock || 0, img, stay);
+    const updatedProduct = await productUpdate(id, name, price, earnings, category, availability, stock || 0, id_product, price_sales, img, stay);
     res.json({ message: 'Producto actualizado con exito', updatedProduct });
   } catch (error) {
     console.error('Error actualizando producto:', error);
@@ -39,7 +39,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    await productDelete(Number(id));
+    await productDelete(id);
     res.json({ message: 'Producto eliminado con exito' });
   } catch (error) {
     console.error('Error eliminando producto:', error);

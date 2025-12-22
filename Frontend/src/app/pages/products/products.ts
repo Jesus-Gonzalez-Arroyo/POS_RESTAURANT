@@ -26,14 +26,35 @@ export class Products implements OnInit {
   categoriesList: Category[] = [];
 
   newProduct = {
+    id_product: '',
     name: '',
     price: null as number | null,
+    price_sales: null as number | null,
     earnings: null as number | null,
     category: '',
     availability: true,
     stock: 0,
     stay: '',
     img: null as File | null
+  };
+
+  // Validación de campos
+  formErrors = {
+    id_product: '',
+    name: '',
+    price: '',
+    price_sales: '',
+    category: '',
+    stock: ''
+  };
+
+  formTouched = {
+    id_product: false,
+    name: false,
+    price: false,
+    price_sales: false,
+    category: false,
+    stock: false
   };
   
   // Propiedades para el manejo de imágenes
@@ -84,6 +105,15 @@ export class Products implements OnInit {
         console.error('Error cargando categorías:', error);
       }
     });
+  }
+
+  // Calcular ganancias automáticamente
+  calculateEarnings() {
+    if (this.newProduct.price_sales && this.newProduct.price) {
+      this.newProduct.earnings = Number(this.newProduct.price_sales) - Number(this.newProduct.price);
+    } else {
+      this.newProduct.earnings = null;
+    }
   }
 
   // Función alternativa con formato personalizado (punto como separador de miles)
@@ -185,7 +215,7 @@ export class Products implements OnInit {
     };
   }
 
-  deleteProduct(id: number) {
+  deleteProduct(id: string) {
     ConfirmAlert({
       title: 'Eliminar Producto',
       message: '¿Está seguro de que desea eliminar este producto?',
@@ -199,15 +229,15 @@ export class Products implements OnInit {
     });
   }
 
-  confirmDeleteProduct(id: number) {
+  confirmDeleteProduct(id: string) {
     this.productsService.deleteProduct(id).subscribe({
       next: () => {
         Alert('Éxito', 'Producto eliminado correctamente', 'success');
         this.loadProducts();
       },
       error: (error) => {
+        Alert('Error', 'No se pudo eliminar el producto. Intente nuevamente más tarde.', 'error');
         console.error('Error eliminando producto:', error);
-        this.error = 'Error al eliminar el producto';
         this.loading = false;
       }
     });
@@ -217,8 +247,10 @@ export class Products implements OnInit {
     const existingProduct = this.allProducts.find(p => p.id === product.id);
     if (existingProduct) {
       this.newProduct = {
+        id_product: existingProduct.id_product || '',
         name: existingProduct.name,
         price: existingProduct.price,
+        price_sales: existingProduct.price_sales || null,
         earnings: existingProduct.earnings,
         category: existingProduct.category,
         availability: existingProduct.availability,
@@ -305,12 +337,24 @@ export class Products implements OnInit {
     }
   }
 
+  validateField(fieldName: keyof typeof this.formTouched) {
+    this.formTouched[fieldName] = true;
+  }
+
   addProduct() {
+    // Marcar todos los campos como tocados
+    Object.keys(this.formTouched).forEach(key => {
+      this.formTouched[key as keyof typeof this.formTouched] = true;
+    });
+
     if (this.isValidProduct()) {
       this.loading = true;
+      this.calculateEarnings();
       const productData: Omit<Product, 'id'> = {
+        id_product: this.newProduct.id_product,
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
+        price_sales: Number(this.newProduct.price_sales),
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
         availability: this.newProduct.availability,
@@ -318,6 +362,8 @@ export class Products implements OnInit {
         stay: this.newProduct.stay,
         img: this.selectedFile || undefined
       };
+
+      console.log('Adding product with data:', productData);
 
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {
@@ -336,11 +382,19 @@ export class Products implements OnInit {
   }
 
   updateProduct() {
+    // Marcar todos los campos como tocados
+    Object.keys(this.formTouched).forEach(key => {
+      this.formTouched[key as keyof typeof this.formTouched] = true;
+    });
+
     if (this.isValidProduct() && this.editingProductId) {
       this.loading = true;
+      this.calculateEarnings();
       const productData: Omit<Product, 'id'> = {
+        id_product: this.newProduct.id_product,
         name: this.newProduct.name,
         price: Number(this.newProduct.price),
+        price_sales: Number(this.newProduct.price_sales),
         earnings: Number(this.newProduct.earnings),
         category: this.newProduct.category,
         availability: this.newProduct.availability,
@@ -348,10 +402,8 @@ export class Products implements OnInit {
         stay: this.newProduct.stay,
         img: this.selectedFile || undefined
       };
-
-      console.log('Updating product with data:', productData);
       
-      this.productsService.updateProduct(this.editingProductId, productData).subscribe({
+      this.productsService.updateProduct(productData.id_product, productData).subscribe({
         next: (response) => {
           Alert('Éxito', 'Producto actualizado correctamente', 'success');
           this.loadProducts();
@@ -368,14 +420,62 @@ export class Products implements OnInit {
   }
 
   isValidProduct(): boolean {
-    return !!(
-      this.newProduct.name?.trim() &&
-      this.newProduct.price !== null &&
-      this.newProduct.price > 0 &&
-      this.newProduct.earnings !== null &&
-      this.newProduct.earnings >= 0 &&
-      this.newProduct.category?.trim()
-    );
+    let isValid = true;
+    this.formErrors = {
+      id_product: '',
+      name: '',
+      price: '',
+      price_sales: '',
+      category: '',
+      stock: ''
+    };
+
+    // Validar ID del producto
+    if (!this.newProduct.id_product?.trim()) {
+      this.formErrors.id_product = 'El ID del producto es obligatorio';
+      isValid = false;
+    }
+
+    // Validar nombre
+    if (!this.newProduct.name?.trim()) {
+      this.formErrors.name = 'El nombre del producto es obligatorio';
+      isValid = false;
+    }
+
+    // Validar precio de compra
+    if (this.newProduct.price === null || this.newProduct.price === undefined) {
+      this.formErrors.price = 'El precio de compra es obligatorio';
+      isValid = false;
+    } else if (this.newProduct.price <= 0) {
+      this.formErrors.price = 'El precio de compra debe ser mayor a 0';
+      isValid = false;
+    }
+
+    // Validar precio de venta
+    if (this.newProduct.price_sales === null || this.newProduct.price_sales === undefined) {
+      this.formErrors.price_sales = 'El precio de venta es obligatorio';
+      isValid = false;
+    } else if (this.newProduct.price_sales <= 0) {
+      this.formErrors.price_sales = 'El precio de venta debe ser mayor a 0';
+      isValid = false;
+    }
+
+    // Validar categoría
+    if (!this.newProduct.category?.trim()) {
+      this.formErrors.category = 'La categoría es obligatoria';
+      isValid = false;
+    }
+
+    // Validar stock
+    if (this.newProduct.stock === null || this.newProduct.stock === undefined) {
+      this.formErrors.stock = 'El stock es obligatorio';
+      isValid = false;
+    } else if (this.newProduct.stock < 0) {
+      this.formErrors.stock = 'El stock no puede ser negativo';
+      isValid = false;
+    }
+
+    return isValid;
   }
 
   cancelForm() {
@@ -385,8 +485,10 @@ export class Products implements OnInit {
 
   resetForm() {
     this.newProduct = {
+      id_product: '',
       name: '',
       price: null as number | null,
+      price_sales: null as number | null,
       earnings: null as number | null,
       category: '',
       availability: true,
@@ -398,6 +500,22 @@ export class Products implements OnInit {
     this.editingProductId = null;
     this.imagePreview = null;
     this.selectedFile = null;
+    this.formErrors = {
+      id_product: '',
+      name: '',
+      price: '',
+      price_sales: '',
+      category: '',
+      stock: ''
+    };
+    this.formTouched = {
+      id_product: false,
+      name: false,
+      price: false,
+      price_sales: false,
+      category: false,
+      stock: false
+    };
   }
 
   // Métodos para el manejo de imágenes

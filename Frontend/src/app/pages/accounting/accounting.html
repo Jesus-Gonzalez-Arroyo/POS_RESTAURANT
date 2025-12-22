@@ -413,10 +413,10 @@
                         <div class="text-right">
                             <p class="text-xs text-gray-500 mb-1">Precio Unitario</p>
                             <p class="text-lg font-bold text-gray-900">
-                                ${{ formatPrice(product.price || 0) }}
+                                ${{ formatPrice(product.price_sales || 0) }}
                             </p>
                             <p class="text-xs text-blue-600 font-medium mt-1">
-                                Total: ${{ formatPrice((product.price || 0) * product.quantity) }}
+                                Total: ${{ formatPrice((product.price_sales || 0) * product.quantity) }}
                             </p>
                         </div>
                     </div>

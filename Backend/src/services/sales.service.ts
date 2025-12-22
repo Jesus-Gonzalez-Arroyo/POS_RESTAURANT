@@ -16,8 +16,8 @@ export const createSale = async (sale: SaleCreate) => {
         const ganancias = products.reduce((acc: number, product: any) => acc + (parseInt(product.earnings) * product.quantity), 0).toString();
         
         const res = await client.query(
-            'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, timezone(\'America/Bogota\', NOW()), $5) RETURNING *',
-            [customer, total, paymentmethod, JSON.stringify(products), ganancias]
+            'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [customer, total, paymentmethod, JSON.stringify(products), time, ganancias]
         );
         
         await descountStock(client, products);
@@ -34,12 +34,12 @@ export const createSale = async (sale: SaleCreate) => {
     }
 }
 
-export const descountStock = async (client: any, products: { id: number; quantity: number }[]) => {
+export const descountStock = async (client: any, products: { id: number; quantity: number, id_product: number }[]) => {
     try {
         for (const product of products) {
             const checkStock = await client.query(
-                'SELECT stock FROM products WHERE id = $1',
-                [product.id]
+                'SELECT stock FROM products WHERE id_product = $1',
+                [product.id_product]
             );
             
             if (checkStock.rows.length === 0) {
@@ -53,12 +53,12 @@ export const descountStock = async (client: any, products: { id: number; quantit
             }
             
             const res = await client.query(
-                'UPDATE products SET stock = stock - $1 WHERE id = $2 RETURNING stock',
-                [product.quantity, product.id]
+                'UPDATE products SET stock = stock - $1 WHERE id_product = $2 RETURNING stock',
+                [product.quantity, product.id_product]
             );
             
             if (res.rowCount === 0) {
-                throw new Error(`No se pudo actualizar el stock del producto ID ${product.id}`);
+                throw new Error(`No se pudo actualizar el stock del producto ID ${product.id_product}`);
             }
         }
     } catch (error) {

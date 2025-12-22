@@ -9,21 +9,21 @@ import { ReturnData, ReturnProduct } from "../interfaces/returning.interface";
 export const restoreStock = async (client: any, products: ReturnProduct[]) => {
     for (const product of products) {
         const checkProduct = await client.query(
-            'SELECT id, stock FROM products WHERE id = $1',
-            [product.id]
+            'SELECT id, stock FROM products WHERE id_product = $1',
+            [product.id_product]
         );
         
         if (checkProduct.rows.length === 0) {
-            throw new Error(`Producto con ID ${product.id} no encontrado`);
+            throw new Error(`Producto con ID ${product.id_product} no encontrado`);
         }
         
         const res = await client.query(
-            'UPDATE products SET stock = stock + $1 WHERE id = $2 RETURNING stock',
-            [product.quantity, product.id]
+            'UPDATE products SET stock = stock + $1 WHERE id_product = $2 RETURNING stock',
+            [product.quantity, product.id_product]
         );
  
         if (res.rowCount === 0) {
-            throw new Error(`No se pudo restaurar el stock del producto ID ${product.id}`);
+            throw new Error(`No se pudo restaurar el stock del producto ID ${product.id_product}`);
         }
     }
 }
