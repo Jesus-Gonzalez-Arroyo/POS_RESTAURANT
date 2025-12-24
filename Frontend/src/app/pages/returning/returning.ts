@@ -5,6 +5,7 @@ import { Sales, Sale } from '../../core/services/sales/sales';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { Returns } from '../../core/services/returns/returns';
+import { BoxRegister } from '../../core/services/box/box-register';
 import { idText } from 'typescript';
 
 interface SaleWithId extends Sale {
@@ -56,7 +57,11 @@ export class Returning implements OnInit {
 
   Math = Math;
 
-  constructor(private salesService: Sales, private returnsService: Returns) { }
+  constructor(
+    private salesService: Sales, 
+    private returnsService: Returns,
+    private boxService: BoxRegister
+  ) { }
 
   ngOnInit() {
     this.loadSales();
@@ -219,10 +224,16 @@ export class Returning implements OnInit {
       reason: this.returnReason,
     };
 
-    console.log('Datos de devolución a enviar:', returnData);
-
     this.returnsService.createReturn(returnData).subscribe({
       next: (response) => {
+        // Registrar devolución en la caja local si está abierta
+        if (this.boxService.isBoxOpen()) {
+          this.boxService.registerReturn(
+            this.returnTotal, 
+            `Devolución de venta #${this.selectedSale!.id} - ${this.returnReason}`
+          );
+        }
+
         Alert(
           'Devolución Procesada',
           `Se ha procesado la devolución exitosamente. Total devuelto: $${this.formatPrice(this.returnTotal)}`,

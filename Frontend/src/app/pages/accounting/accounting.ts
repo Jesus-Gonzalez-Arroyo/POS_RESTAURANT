@@ -2,6 +2,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Sales, Sale } from '../../core/services/sales/sales';
+import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
+import { PaymentMethod } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { generateSaleReceipt, printDocument } from '../../shared/utils/printTemplates';
 import { getDate, getHours } from '../../shared/utils/formartDate';
@@ -30,12 +32,40 @@ export class Accounting implements OnInit {
   sortBy: string = 'date';
   sortOrder: 'asc' | 'desc' = 'desc';
   selectedSaleProducts: any[] | null = null;
-  paymentMethods = ['efectivo', 'transferencia', 'tarjeta'];
+  paymentMethods: PaymentMethod[] = [];
+  uniquePaymentMethods: string[] = []; // Métodos únicos usados en ventas
 
-  constructor(private salesService: Sales) {}
+  constructor(
+    private salesService: Sales,
+    private paymentMethodsService: PaymenthMethods
+  ) {}
 
   ngOnInit() {
+    this.loadPaymentMethods();
     this.loadSales();
+  }
+
+  // Cargar métodos de pago desde la base de datos
+  loadPaymentMethods() {
+    this.paymentMethodsService.getPaymentMethods().subscribe({
+      next: (methods: any) => {
+        this.paymentMethods = methods.filter((m: PaymentMethod) => m.is_active);
+      },
+      error: (error) => {
+        console.error('Error cargando métodos de pago:', error);
+      }
+    });
+  }
+
+  // Extraer métodos de pago únicos de las ventas
+  extractUniquePaymentMethods() {
+    const uniqueMethods = new Set<string>();
+    this.sales.forEach(sale => {
+      if (sale.paymentmethod) {
+        uniqueMethods.add(sale.paymentmethod);
+      }
+    });
+    this.uniquePaymentMethods = Array.from(uniqueMethods).sort();
   }
 
   loadSales() {
@@ -47,6 +77,7 @@ export class Accounting implements OnInit {
         this.sales = sales;
         this.filteredSales = sales;
         this.totalItems = sales.length;
+        this.extractUniquePaymentMethods();
         this.applyFilters();
         this.loading = false;
       },
@@ -69,11 +100,13 @@ export class Accounting implements OnInit {
       );
     }
 
-    // Filtro por método de pago
+    // Filtro por método de pago (comparación exacta sin normalizar)
     if (this.selectedPaymentMethod) {
-      result = result.filter(sale => 
-        sale.paymentmethod.toLocaleLowerCase() === this.selectedPaymentMethod.toLocaleLowerCase()
-      );
+      result = result.filter(sale => {
+        const saleMethod = (sale.paymentmethod || '').trim();
+        const selectedMethod = this.selectedPaymentMethod.trim();
+        return saleMethod === selectedMethod;
+      });
     }
 
     // Filtro por rango de fechas
@@ -257,25 +290,23 @@ export class Accounting implements OnInit {
   }
 
   // Obtener clases CSS para el método de pago
-  getPaymentMethodClass(paymentMethod: string): string {
-    const method = paymentMethod.toLowerCase();
-    
+  getPaymentMethodClass(paymentMethod: string): string {    
+    const methodLower = paymentMethod.toLowerCase();
     const classGroups: Record<string, string[]> = {
-      'bg-gradient-to-r from-green-100 to-green-200 text-green-800': ['efectivo'],
-      'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800': ['transferencia', 'qr'],
-      'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800': ['tarjeta', 'tarjeta de debito', 'debito'],
-      'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800': ['credito', 'tarjeta de credito', 'tarjeta credito']
+      'bg-gradient-to-r from-green-100 to-green-200 text-green-800': ['efectivo', 'cash'],
+      'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800': ['transferencia', 'transfer', 'qr', 'nequi', 'daviplata', 'bancolombia'],
+      'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800': ['tarjeta', 'card', 'debito', 'debit'],
+      'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800': ['credito', 'credit']
     };
 
     for (const [cssClass, methods] of Object.entries(classGroups)) {
-      if (methods.includes(method)) {
+      if (methods.some(m => methodLower.includes(m))) {
         return cssClass;
       }
     }
 
     return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800';
   }
-
 
   modifyTime(dateString: string | Date): string {
     return getHours(dateString);

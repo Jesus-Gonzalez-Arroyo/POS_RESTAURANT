@@ -8,9 +8,7 @@ interface CashRegister {
   difference?: number;
   totalsales: number;
   totalexpenses: number;
-  cashsales: number;
-  cardsales: number;
-  transfersales: number;
+  salesbymethod: { [methodName: string]: number }; // Ventas dinámicas por método de pago
   status: 'abierta' | 'cerrada';
   openedby: string;
   closedby?: string;
@@ -20,7 +18,7 @@ interface CashRegister {
 
 interface Transaction {
   id: string;
-  type: 'venta' | 'gasto' | 'retiro' | 'ingreso';
+  type: 'venta' | 'gasto' | 'retiro' | 'ingreso' | 'devolucion';
   amount: number;
   description: string;
   timestamp: Date;

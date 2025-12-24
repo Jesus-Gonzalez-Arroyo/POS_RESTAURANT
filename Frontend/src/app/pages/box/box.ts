@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoxRegister } from '../../core/services/box/box-register';
-import { CashRegister, Transaction } from '../../core/models/index';
+import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
+import { CashRegister, Transaction, PaymentMethod } from '../../core/models/index';
+import { Alert } from '../../shared/utils/alert';
 
 @Component({
   selector: 'app-box',
@@ -15,6 +17,7 @@ export class Box implements OnInit {
   Math = Math;
   currentRegister: Omit<CashRegister, 'id'> | null = null;
   registerHistory: CashRegister[] = [];
+  paymentMethods: PaymentMethod[] = [];
   showOpenModal = false;
   showCloseModal = false;
   showTransactionModal = false;
@@ -33,13 +36,29 @@ export class Box implements OnInit {
   itemsPerPage = 10;
   selectedRegister: CashRegister | null = null;
 
-  constructor(private boxRegister: BoxRegister) {}
+  constructor(
+    private boxRegister: BoxRegister,
+    private paymentMethodsService: PaymenthMethods
+  ) {}
 
   ngOnInit() {
+    this.loadPaymentMethods();
     this.loadRegisterHistory();
     this.loadCurrentRegister();
     // Recargar la caja cada cierto tiempo para reflejar ventas
     setInterval(() => this.loadCurrentRegister(), 5000);
+  }
+
+  // Cargar métodos de pago
+  loadPaymentMethods() {
+    this.paymentMethodsService.getPaymentMethods().subscribe({
+      next: (methods: any) => {
+        this.paymentMethods = methods.filter((m: PaymentMethod) => m.is_active);
+      },
+      error: (error) => {
+        console.error('Error cargando métodos de pago:', error);
+      }
+    });
   }
 
   // Cargar caja actual
@@ -48,7 +67,60 @@ export class Box implements OnInit {
     if (savedRegister) {
       this.currentRegister = JSON.parse(savedRegister);
       this.currentRegister!.openingdate = new Date(this.currentRegister!.openingdate);
+      // Limpiar devoluciones mal registradas en totalexpenses
+      this.cleanupIncorrectReturns();
     }
+  }
+
+  // Limpiar devoluciones incorrectamente registradas como gastos
+  cleanupIncorrectReturns() {
+    if (!this.currentRegister) return;
+    
+    // Buscar transacciones de tipo 'devolucion' que se hayan sumado incorrectamente a gastos
+    const returnTransactions = this.currentRegister.transactions.filter(t => t.type === 'devolucion');
+    const totalReturnsAmount = returnTransactions.reduce((sum, t) => sum + t.amount, 0);
+    
+    // Si hay devoluciones y gastos mayores o iguales a ese monto, limpiar
+    if (returnTransactions.length > 0 && this.currentRegister.totalexpenses >= totalReturnsAmount) {
+      console.log(`Limpiando devoluciones incorrectas: $${totalReturnsAmount} de gastos`);
+      this.currentRegister.totalexpenses = Math.max(0, this.currentRegister.totalexpenses - totalReturnsAmount);
+      localStorage.setItem('currentRegister', JSON.stringify(this.currentRegister));
+    }
+  }
+
+  // Obtener método de pago de efectivo (el primero que contenga "efectivo" en el nombre)
+  get cashPaymentMethod(): string {
+    const cashMethod = this.paymentMethods.find(m => 
+      m.name.toLowerCase().includes('efectivo') || 
+      m.name.toLowerCase().includes('cash')
+    );
+    return cashMethod ? cashMethod.name : 'Efectivo';
+  }
+
+  // Obtener total de ventas en efectivo
+  get cashSales(): number {
+    if (!this.currentRegister || !this.currentRegister.salesbymethod) return 0;
+    return this.currentRegister.salesbymethod[this.cashPaymentMethod] || 0;
+  }
+
+  // Abrir modal de cierre (recarga datos primero)
+  openCloseModal() {
+    this.loadCurrentRegister(); // Recargar datos antes de abrir el modal
+    this.showCloseModal = true;
+  }
+
+  // Calcular total de devoluciones
+  get totalReturns(): number {
+    if (!this.currentRegister) return 0;
+    return this.currentRegister.transactions
+      .filter(t => t.type === 'devolucion')
+      .reduce((sum, t) => sum + t.amount, 0);
+  }
+
+  // Calcular total de gastos/retiros incluyendo devoluciones
+  get totalExpensesAndReturns(): number {
+    if (!this.currentRegister) return 0;
+    return this.currentRegister.totalexpenses + this.totalReturns;
   }
 
   // Cargar historial
@@ -72,9 +144,7 @@ export class Box implements OnInit {
       openingamount: this.openingAmount,
       totalsales: 0,
       totalexpenses: 0,
-      cashsales: 0,
-      cardsales: 0,
-      transfersales: 0,
+      salesbymethod: {},
       status: 'abierta',
       openedby: localStorage.getItem('user') || 'Usuario actual',
       transactions: []
@@ -90,12 +160,17 @@ export class Box implements OnInit {
     if (!this.currentRegister) return;
 
     if (this.closingAmount < 0) {
-      alert('El monto de cierre debe ser positivo');
+      Alert('Error', 'El monto de cierre debe ser positivo', 'error');
+      return;
+    }
+
+    if (this.closingAmount === 0) {
+      Alert('Error', 'El monto de cierre no puede ser cero', 'error');
       return;
     }
 
     const expectedamount = this.currentRegister.openingamount + 
-                          this.currentRegister.cashsales - 
+                          this.cashSales - 
                           this.currentRegister.totalexpenses;
 
     const difference = this.closingAmount - expectedamount;
@@ -140,16 +215,24 @@ export class Box implements OnInit {
       amount: this.transactionAmount,
       description: this.transactionDescription,
       timestamp: new Date(),
-      paymentMethod: 'efectivo'
+      paymentMethod: this.cashPaymentMethod
     };
 
     this.currentRegister.transactions.push(transaction);
 
     if (this.transactionType === 'retiro') {
       this.currentRegister.totalexpenses += this.transactionAmount;
-      this.currentRegister.cashsales -= this.transactionAmount;
+      // Restar del efectivo
+      if (!this.currentRegister.salesbymethod[this.cashPaymentMethod]) {
+        this.currentRegister.salesbymethod[this.cashPaymentMethod] = 0;
+      }
+      this.currentRegister.salesbymethod[this.cashPaymentMethod] -= this.transactionAmount;
     } else {
-      this.currentRegister.cashsales += this.transactionAmount;
+      // Sumar al efectivo
+      if (!this.currentRegister.salesbymethod[this.cashPaymentMethod]) {
+        this.currentRegister.salesbymethod[this.cashPaymentMethod] = 0;
+      }
+      this.currentRegister.salesbymethod[this.cashPaymentMethod] += this.transactionAmount;
     }
 
     localStorage.setItem('currentRegister', JSON.stringify(this.currentRegister));

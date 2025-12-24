@@ -1,4 +1,4 @@
-import { getAllCashRegisters, saveCashRegister } from '../services/box.service';
+import { getAllCashRegisters, saveCashRegister, getOpenCashRegister, updateCashRegister } from '../services/box.service';
 import {Request, Response} from 'express'
 
 export const fetchAllCashRegisters = async (req: Request, res: Response): Promise<void> => {
@@ -18,6 +18,28 @@ export const createCashRegister = async (req: Request, res: Response): Promise<v
         res.status(201).json(savedRegister);
     } catch (error) {
         console.error("Error creating cash register:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const fetchOpenCashRegister = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const openRegister = await getOpenCashRegister();
+        res.json(openRegister);
+    } catch (error) {
+        console.error("Error fetching open cash register:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const updateCashRegisterController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const registerData = req.body;
+        const updatedRegister = await updateCashRegister(id, registerData);
+        res.json(updatedRegister);
+    } catch (error) {
+        console.error("Error updating cash register:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
