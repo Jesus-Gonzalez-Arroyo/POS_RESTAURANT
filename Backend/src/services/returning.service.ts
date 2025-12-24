@@ -1,5 +1,6 @@
 import pool from "../config/connectDB";
 import { ReturnData, ReturnProduct } from "../interfaces/returning.interface";
+import { getOpenCashRegister, updateCashRegister } from "./box.service";
 
 /**
  * Restaura el stock de productos devueltos
@@ -115,6 +116,48 @@ export const processReturn = async (returnData: ReturnData) => {
         // Restaurar el stock de los productos devueltos
         await restoreStock(client, products);
         
+        // Descontar de la caja abierta si existe
+        const openBox = await getOpenCashRegister();
+        if (openBox) {
+            const transactions = typeof openBox.transactions === 'string' 
+                ? JSON.parse(openBox.transactions) 
+                : openBox.transactions || [];
+            
+            // Obtener el método de pago de la venta original
+            const paymentMethod = originalSale.paymentmethod || 'Efectivo';
+            
+            // Agregar transacción de devolución
+            transactions.push({
+                id: Date.now().toString(),
+                type: 'devolucion',
+                amount: total,
+                description: `Devolución de venta #${saleId} - ${reason}`,
+                timestamp: new Date(),
+                paymentMethod: paymentMethod
+            });
+            
+            // Parsear salesbymethod si es string
+            const salesByMethod = typeof openBox.salesbymethod === 'string' 
+                ? JSON.parse(openBox.salesbymethod) 
+                : openBox.salesbymethod || {};
+            
+            // Descontar del método de pago correspondiente
+            if (salesByMethod[paymentMethod]) {
+                salesByMethod[paymentMethod] = parseFloat(salesByMethod[paymentMethod].toString()) - total;
+            }
+            
+            // Actualizar totales de la caja
+            const updatedBox = {
+                totalsales: parseFloat(openBox.totalsales.toString()) - total,
+                salesbymethod: salesByMethod,
+                transactions: transactions
+            };
+            
+            await updateCashRegister(openBox.id, updatedBox);
+            
+            console.log(`Caja actualizada: Devolución de $${total} descontada de ${paymentMethod}`);
+        }
+        
         await client.query('COMMIT');
         
         return {
@@ -128,7 +171,8 @@ export const processReturn = async (returnData: ReturnData) => {
                 newTotal: newTotal,
                 newGanancias: newGanancias,
                 remainingProducts: updatedProducts.length
-            } : null
+            } : null,
+            boxUpdated: openBox !== null
         };
     } catch (error) {
         await client.query('ROLLBACK');

@@ -78,8 +78,8 @@
                         (ngModelChange)="applyFilters()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all focus:scale-105">
                         <option value="">Todos</option>
-                        <option *ngFor="let method of paymentMethods" [value]="method">
-                            {{ method | titlecase }}
+                        <option *ngFor="let method of uniquePaymentMethods" [value]="method">
+                            {{ method }}
                         </option>
                     </select>
                 </div>
@@ -213,7 +213,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm"
                             [ngClass]="getPaymentMethodClass(sale.paymentmethod)">
-                            {{ sale.paymentmethod | titlecase }}
+                            {{ sale.paymentmethod }}
                         </span>
                     </td>
 

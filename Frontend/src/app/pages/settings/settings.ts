@@ -7,6 +7,7 @@ import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { getDate } from '../../shared/utils/formartDate';
 import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
 import { Categories as CategoriesService } from '../../core/services/categories/categories';
+import { capitalize } from '../../shared/utils/capitalize';
 
 @Component({
   selector: 'app-categories',
@@ -248,6 +249,8 @@ export class Categories implements OnInit {
         } as PaymentMethod;
       }
 
+      this.paymentMethods[index].name = capitalize(this.paymentMethods[index].name);
+
       this.paymentMethodsService.updatePaymentMethod(this.paymentMethods[index].id, this.paymentMethods[index]).subscribe({
         next: () => {
           Alert('Completado', 'Método de pago actualizado exitosamente', 'success');
@@ -261,7 +264,7 @@ export class Categories implements OnInit {
     } else {
       // Crear nuevo método
       const newPayment: Omit<PaymentMethod, 'id'> = {
-        name: this.newPaymentMethod.name!,
+        name: capitalize(this.newPaymentMethod.name!),
         description: this.newPaymentMethod.description,
         color: this.newPaymentMethod.color!,
         icon: this.newPaymentMethod.icon!,

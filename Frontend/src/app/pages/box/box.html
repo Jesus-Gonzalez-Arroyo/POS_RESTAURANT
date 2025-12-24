@@ -22,29 +22,31 @@
                     <p class="text-green-100 text-xs">{{ formatDate(currentRegister.openingdate) }}</p>
                 </div>
                 <button 
-                    (click)="showCloseModal = true"
+                    (click)="openCloseModal()"
                     class="px-6 py-3 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-all duration-200 font-semibold shadow-md">
                     Cerrar Caja
                 </button>
             </div>
 
             <!-- Resumen actual -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-green-400/30">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-green-400/30">
                 <div>
                     <p class="text-green-100 text-xs mb-1">Monto Inicial</p>
                     <p class="text-xl font-bold">{{ formatPrice(currentRegister.openingamount) }}</p>
                 </div>
-                <div>
-                    <p class="text-green-100 text-xs mb-1">Ventas Totales</p>
-                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.totalsales) }}</p>
+                <div *ngFor="let method of paymentMethods" class="col-span-1">
+                    <p class="text-green-100 text-xs mb-1">Ventas {{ method.name }}</p>
+                    <p class="text-xl font-bold" [style.color]="method.color || '#fff'">
+                        {{ formatPrice(currentRegister.salesbymethod[method.name] || 0) }}
+                    </p>
                 </div>
                 <div>
-                    <p class="text-green-100 text-xs mb-1">Efectivo</p>
-                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.cashsales) }}</p>
+                    <p class="text-green-100 text-xs mb-1">Gastos/Retiros</p>
+                    <p class="text-xl font-bold text-red-300">{{ formatPrice(totalExpensesAndReturns) }}</p>
                 </div>
-                <div>
-                    <p class="text-green-100 text-xs mb-1">Esperado en Caja</p>
-                    <p class="text-xl font-bold">{{ formatPrice(currentRegister.openingamount + currentRegister.cashsales - currentRegister.totalexpenses) }}</p>
+                <div class="md:col-span-2">
+                    <p class="text-green-100 text-xs mb-1">Esperado en Caja ({{ cashPaymentMethod }})</p>
+                    <p class="text-xl font-bold text-yellow-300">{{ formatPrice(currentRegister.openingamount + cashSales - currentRegister.totalexpenses) }}</p>
                 </div>
             </div>
 
@@ -274,16 +276,20 @@
                         <p class="font-semibold">{{ formatPrice(currentRegister?.openingamount || 0) }}</p>
                     </div>
                     <div>
-                        <p class="text-gray-600">Ventas Efectivo:</p>
-                        <p class="font-semibold text-green-600">{{ formatPrice(currentRegister?.cashsales || 0) }}</p>
+                        <p class="text-gray-600">Ventas {{ cashPaymentMethod }}:</p>
+                        <p class="font-semibold text-green-600">{{ formatPrice(cashSales) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-600">Gastos/Retiros:</p>
-                        <p class="font-semibold text-red-600">{{ formatPrice(currentRegister?.totalexpenses || 0) }}</p>
+                        <p class="font-semibold text-red-600">{{ formatPrice(totalExpensesAndReturns) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Devoluciones:</p>
+                        <p class="font-semibold text-orange-600">{{ formatPrice(totalReturns) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-600">Esperado:</p>
-                        <p class="font-semibold text-blue-600">{{ formatPrice((currentRegister?.openingamount || 0) + (currentRegister?.cashsales || 0) - (currentRegister?.totalexpenses || 0)) }}</p>
+                        <p class="font-semibold text-blue-600">{{ formatPrice((currentRegister?.openingamount || 0) + cashSales - (currentRegister?.totalexpenses || 0)) }}</p>
                     </div>
                 </div>
             </div>
@@ -414,18 +420,12 @@
             <!-- Ventas por método de pago -->
             <div class="bg-green-50 rounded-lg p-4 mb-6">
                 <h4 class="font-semibold text-gray-700 mb-3">Ventas por Método de Pago</h4>
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <p class="text-sm text-gray-600">Efectivo</p>
-                        <p class="text-lg font-semibold text-green-600">{{ formatPrice(selectedRegister.cashsales) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Tarjeta</p>
-                        <p class="text-lg font-semibold text-blue-600">{{ formatPrice(selectedRegister.cardsales) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Transferencia</p>
-                        <p class="text-lg font-semibold text-purple-600">{{ formatPrice(selectedRegister.transfersales) }}</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div *ngFor="let method of paymentMethods">
+                        <p class="text-sm text-gray-600">{{ method.name }}</p>
+                        <p class="text-lg font-semibold" [style.color]="method.color || '#059669'">
+                            {{ formatPrice((selectedRegister.salesbymethod && selectedRegister.salesbymethod[method.name]) || 0) }}
+                        </p>
                     </div>
                 </div>
             </div>
