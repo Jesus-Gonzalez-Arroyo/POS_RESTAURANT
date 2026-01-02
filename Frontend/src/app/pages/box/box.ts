@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoxRegister } from '../../core/services/box/box-register';
 import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
+import { Bill } from '../../core/services/bill/bill';
 import { CashRegister, Transaction, PaymentMethod } from '../../core/models/index';
 import { Alert } from '../../shared/utils/alert';
 
@@ -38,14 +39,14 @@ export class Box implements OnInit {
 
   constructor(
     private boxRegister: BoxRegister,
-    private paymentMethodsService: PaymenthMethods
+    private paymentMethodsService: PaymenthMethods,
+    private billService: Bill
   ) {}
 
   ngOnInit() {
     this.loadPaymentMethods();
     this.loadRegisterHistory();
     this.loadCurrentRegister();
-    // Recargar la caja cada cierto tiempo para reflejar ventas
     setInterval(() => this.loadCurrentRegister(), 5000);
   }
 
@@ -101,6 +102,26 @@ export class Box implements OnInit {
   get cashSales(): number {
     if (!this.currentRegister || !this.currentRegister.salesbymethod) return 0;
     return this.currentRegister.salesbymethod[this.cashPaymentMethod] || 0;
+  }
+
+  // Obtener todos los métodos de pago con ventas registradas
+  get salesByPaymentMethod(): { method: string, amount: number, color?: string }[] {
+    if (!this.currentRegister || !this.currentRegister.salesbymethod) return [];
+    
+    return Object.keys(this.currentRegister.salesbymethod).map(methodName => {
+      const methodInfo = this.paymentMethods.find(m => m.name === methodName);
+      return {
+        method: methodName,
+        amount: this.currentRegister!.salesbymethod[methodName],
+        color: methodInfo?.color
+      };
+    }).filter(item => item.amount !== 0); // Filtrar métodos con monto 0
+  }
+
+  // Obtener el total de todas las ventas sumando todos los métodos
+  get totalAllSales(): number {
+    if (!this.currentRegister || !this.currentRegister.salesbymethod) return 0;
+    return Object.values(this.currentRegister.salesbymethod).reduce((sum, amount) => sum + amount, 0);
   }
 
   // Abrir modal de cierre (recarga datos primero)
@@ -227,8 +248,25 @@ export class Box implements OnInit {
         this.currentRegister.salesbymethod[this.cashPaymentMethod] = 0;
       }
       this.currentRegister.salesbymethod[this.cashPaymentMethod] -= this.transactionAmount;
+
+      // Registrar el gasto en bills
+      const billData = {
+        description: this.transactionDescription || 'Retiro de caja',
+        amount: this.transactionAmount,
+        category: 'servicios',
+        date: new Date(),
+        notes: `Retiro registrado desde caja - ${new Date().toLocaleString('es-ES')}`,
+        paymentmethod: this.cashPaymentMethod.toLowerCase(),
+        createdby: localStorage.getItem('user') || 'Usuario actual'
+      };
+
+      this.billService.addBill(billData).subscribe({
+        error: (error) => {
+          console.error('Error al registrar gasto en bills:', error);
+          Alert('Advertencia', 'El retiro se registró en caja pero no en facturas', 'warning');
+        }
+      });
     } else {
-      // Sumar al efectivo
       if (!this.currentRegister.salesbymethod[this.cashPaymentMethod]) {
         this.currentRegister.salesbymethod[this.cashPaymentMethod] = 0;
       }
@@ -312,5 +350,49 @@ export class Box implements OnInit {
 
   get totalPages() {
     return Math.ceil(this.filteredHistory.length / this.itemsPerPage);
+  }
+
+  // Obtener array de páginas para el paginador
+  get pages() {
+    const pages = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // Información de paginación
+  get paginationInfo() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const endIndex = Math.min(this.currentPage * this.itemsPerPage, this.filteredHistory.length);
+    return {
+      start: startIndex,
+      end: endIndex,
+      total: this.filteredHistory.length
+    };
+  }
+
+  // Funciones de paginación
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  changeItemsPerPage(newSize: number) {
+    this.itemsPerPage = newSize;
+    this.currentPage = 1;
   }
 }

@@ -263,19 +263,91 @@
 
                 <!-- Método de pago -->
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Método de pago *</label>
-                    <select [(ngModel)]="paymentMethod"
-                        class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base">
-                        <option *ngFor="let method of paymentMethods" [value]="method.value">
-                            {{ method.label }}
-                        </option>
-                    </select>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-gray-700 text-xs md:text-sm font-medium">Método de pago *</label>
+                        <button 
+                            type="button"
+                            (click)="addPaymentMethod()"
+                            [disabled]="cart.length === 0"
+                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+                            <i class="fas fa-plus mr-1"></i>
+                            Agregar método
+                        </button>
+                    </div>
+
+                    <!-- Selector de método de pago (solo visible si no hay múltiples pagos) -->
+                    <div *ngIf="multiplePayments.length === 0">
+                        <select [(ngModel)]="paymentMethod"
+                            class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base">
+                            <option *ngFor="let method of paymentMethods" [value]="method.value">
+                                {{ method.label }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Lista de múltiples métodos de pago -->
+                    <div *ngIf="multiplePayments.length > 0" class="space-y-2">
+                        <div *ngFor="let payment of multiplePayments; let i = index" 
+                            class="border border-gray-300 rounded-lg p-3 bg-gray-50">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" 
+                                        [style.background]="payment.color || '#6B7280'"></div>
+                                    <select [(ngModel)]="payment.method"
+                                        class="p-1 border border-gray-300 rounded text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        <option *ngFor="let method of paymentMethods" [value]="method.value">
+                                            {{ method.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <button 
+                                    type="button"
+                                    (click)="removePaymentMethod(i)"
+                                    class="text-red-500 hover:text-red-700 text-sm">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-600">Monto:</span>
+                                <input 
+                                    type="number" 
+                                    [(ngModel)]="payment.amount"
+                                    (ngModelChange)="updateRemainingAmount()"
+                                    placeholder="0.00"
+                                    min="0"
+                                    step="0.01"
+                                    class="flex-1 p-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                            </div>
+                        </div>
+
+                        <!-- Información de pago -->
+                        <div class="p-2 bg-blue-50 rounded-lg space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-600">Total a pagar:</span>
+                                <span class="font-semibold">${{ formatPrice(orderTotal) }}</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-600">Total pagado:</span>
+                                <span class="font-semibold" [class.text-green-600]="isPaymentComplete" 
+                                    [class.text-red-600]="!isPaymentComplete && totalPaid > 0">
+                                    ${{ formatPrice(totalPaid) }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-600">Restante:</span>
+                                <span class="font-semibold" [class.text-green-600]="remainingAmount <= 0" 
+                                    [class.text-orange-600]="remainingAmount > 0">
+                                    ${{ formatPrice(remainingAmount) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Ingresar valor recibido (si es efectivo) -->
-                <div class="mb-4" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo'">
+                <!-- Ingresar valor recibido (si es efectivo y no hay múltiples pagos) -->
+                <div class="mb-4" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo' && multiplePayments.length === 0">
                     <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Valor recibido *</label>
-                    <input type="text" [(ngModel)]="change" placeholder="Ingrese el valor recibido"
+                    <input type="number" [(ngModel)]="change" placeholder="Ingrese el valor recibido"
                         class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base" />
                 </div>
             </div>
@@ -291,7 +363,7 @@
                 </div>
 
                 <!-- Calcular cambio (solo si es efectivo) -->
-                <div class="mb-3 p-3 bg-gray-50 rounded-lg" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo'">
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo' && multiplePayments.length === 0">
                     <div class="flex justify-between items-center">
                         <span class="text-base md:text-lg font-semibold text-gray-700">Cambio:</span>
                         <span class="text-lg md:text-xl font-bold text-green-600">${{ formatPrice(change !== null ? change - orderTotal : 0) }}</span>
