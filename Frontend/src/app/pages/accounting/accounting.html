@@ -211,10 +211,27 @@
 
                     <!-- Método de Pago -->
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm"
-                            [ngClass]="getPaymentMethodClass(sale.paymentmethod)">
-                            {{ sale.paymentmethod }}
-                        </span>
+                        <!-- Método único -->
+                        <div *ngIf="!sale.paymentbreakdown || sale.paymentbreakdown.length === 0">
+                            <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm"
+                                [ngClass]="getPaymentMethodClass(sale.paymentmethod)">
+                                {{ sale.paymentmethod }}
+                            </span>
+                        </div>
+                        
+                        <!-- Múltiples métodos -->
+                        <div *ngIf="sale.paymentbreakdown && sale.paymentbreakdown.length > 0" class="space-y-1">
+                            <div *ngFor="let payment of sale.paymentbreakdown" 
+                                class="flex items-center gap-2 text-xs">
+                                <span class="px-2 py-1 inline-flex leading-5 font-semibold rounded-md shadow-sm"
+                                    [ngClass]="getPaymentMethodClass(payment.method)">
+                                    {{ payment.method }}
+                                </span>
+                                <span class="text-gray-600 font-medium">
+                                    ${{ formatPrice(payment.amount) }}
+                                </span>
+                            </div>
+                        </div>
                     </td>
 
                     <!-- Total -->

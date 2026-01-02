@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Sales, Sale } from '../../core/services/sales/sales';
+import { Sales } from '../../core/services/sales/sales';
+import { Sale } from '../../core/models';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { Returns } from '../../core/services/returns/returns';

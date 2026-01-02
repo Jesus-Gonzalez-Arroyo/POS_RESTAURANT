@@ -30,13 +30,15 @@ export class Sales implements OnInit {
 
   cart: {id: number, name: string, price_sales: number, quantity: number, total: number, stock?: number }[] = [];
 
-  // Datos del cliente and order
   customerName = '';
   isDelivery = false;
   deliveryAddress = '';
   paymentMethod = 'efectivo';
-  paymentMethods: { value: string, label: string }[] = [];
+  paymentMethods: { value: string, label: string, color?: string }[] = [];
   change: number | null = null;
+  
+  multiplePayments: { method: string, amount: number, color?: string }[] = [];
+  remainingAmount: number = 0;
 
   allProducts = [] as Product[];
 
@@ -88,7 +90,11 @@ export class Sales implements OnInit {
     this.paymentsService.getPaymentMethods().subscribe({
       next: (methods: any) => {
         const methodsArray = methods as PaymentMethod[];
-        this.paymentMethods = methodsArray.map(method => ({ value: method.name, label: method.name }));
+        this.paymentMethods = methodsArray.map(method => ({ 
+          value: method.name, 
+          label: method.name,
+          color: method.color 
+        }));
       },
       error: (error: any) => {
         Alert('Error', 'No se pudieron cargar los métodos de pago. Intente nuevamente más tarde.', 'error');
@@ -125,6 +131,44 @@ export class Sales implements OnInit {
     return this.cart.reduce((total, item) => total + item.price_sales * item.quantity, 0);
   }
 
+  // Agregar método de pago
+  addPaymentMethod() {
+    if (this.multiplePayments.length === 0) {
+      this.remainingAmount = this.orderTotal;
+    }
+
+    const methodInfo = this.paymentMethods.find(m => m.value === this.paymentMethod);
+    
+    this.multiplePayments.push({ 
+      method: this.paymentMethod, 
+      amount: 0,
+      color: methodInfo?.color 
+    });
+  }
+
+  // Remover método de pago
+  removePaymentMethod(index: number) {
+    this.multiplePayments.splice(index, 1);
+    this.updateRemainingAmount();
+  }
+
+  // Actualizar monto restante
+  updateRemainingAmount() {
+    const totalPaid = this.multiplePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    this.remainingAmount = this.orderTotal - totalPaid;
+  }
+
+  // Validar que el total pagado coincida con el total de la orden
+  get isPaymentComplete(): boolean {
+    const totalPaid = this.multiplePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return Math.abs(totalPaid - this.orderTotal) < 0.01;
+  }
+
+  // Obtener el total pagado
+  get totalPaid(): number {
+    return this.multiplePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  }
+
   // Finalizar compra
   finalizePurchase() {
     if (!this.customerName.trim()) {
@@ -142,6 +186,22 @@ export class Sales implements OnInit {
       return;
     }
 
+    if (this.multiplePayments.length > 0) {
+      if (!this.isPaymentComplete) {
+        Alert('Pago incompleto', 
+          `El total pagado ($${this.formatPrice(this.totalPaid)}) no coincide con el total de la orden ($${this.formatPrice(this.orderTotal)})`, 
+          'warning');
+        return;
+      }
+
+      // Verificar que todos los métodos tengan un monto mayor a 0
+      const invalidPayments = this.multiplePayments.filter(p => !p.amount || p.amount <= 0);
+      if (invalidPayments.length > 0) {
+        Alert('Datos incompletos', 'Todos los métodos de pago deben tener un monto mayor a 0', 'warning');
+        return;
+      }
+    }
+
     const productsWithoutImages = this.cart.map(product => {
       const { ...productWithoutImg } = product;
       delete (productWithoutImg as any).img;
@@ -149,20 +209,37 @@ export class Sales implements OnInit {
       return productWithoutImg;
     });
 
+    let paymentMethodForSale: string;
+    let paymentsBreakdown: { method: string, amount: number }[] = [];
+
+    if (this.multiplePayments.length > 0) {
+      paymentMethodForSale = 'Mixto';
+      paymentsBreakdown = this.multiplePayments.map(p => ({ method: p.method, amount: p.amount }));
+    } else {
+      paymentMethodForSale = this.paymentMethod;
+      paymentsBreakdown = [{ method: this.paymentMethod, amount: this.orderTotal }];
+    }
+
     const orderCompleted = {
       customer: this.customerName,
       total: String(this.orderTotal),
-      paymentmethod: this.paymentMethod,
+      paymentmethod: paymentMethodForSale,
+      paymentbreakdown: paymentsBreakdown,
       products: productsWithoutImages,
       time: new Date(),
     }
 
     this.salesService.createSale(orderCompleted).subscribe({
       next: () => {
-        const saleAmount = parseInt(orderCompleted.total);
-        const registeredInBox = this.boxService.registerSale(saleAmount, orderCompleted.paymentmethod);
+        let allRegistered = true;
+        for (const payment of paymentsBreakdown) {
+          const registered = this.boxService.registerSale(payment.amount, payment.method);
+          if (!registered) {
+            allRegistered = false;
+          }
+        }
 
-        if (registeredInBox) {
+        if (allRegistered) {
           Alert('Completado', 'Venta registrada con éxito', 'success');
         } else {
           Alert('Completado', 'Venta registrada con éxito. No hay caja abierta.', 'warning');
@@ -185,6 +262,8 @@ export class Sales implements OnInit {
     this.paymentMethod = 'efectivo';
     this.cart = [];
     this.change = null;
+    this.multiplePayments = [];
+    this.remainingAmount = 0;
   }
 
   // Descontar stock de los productos vendidos
@@ -197,8 +276,7 @@ export class Sales implements OnInit {
     }
   }
     
-
-  // Buscar producto por escaneo y agregarlo automáticamente
+  // Buscar producto por escaneo
   onScanProduct() {
     if (!this.scanInput.trim()) {
       return;
@@ -207,25 +285,12 @@ export class Sales implements OnInit {
     const searchTerm = this.scanInput.toLowerCase().trim();
 
     const product = this.allProducts.find(p => 
-      p.name.toLowerCase().includes(searchTerm) ||
-      p.name.toLowerCase() === searchTerm
+      p.id_product.includes(searchTerm) ||
+      p.id_product === searchTerm
     );
 
     if (product) {
-      if (!product.availability) {
-        Alert('No disponible', `El producto ${product.name} no está disponible`, 'warning');
-        this.scanInput = '';
-        return;
-      }
-
-      if (product.stock === 0) {
-        Alert('Sin stock', `El producto ${product.name} no tiene stock disponible`, 'warning');
-        this.scanInput = '';
-        return;
-      }
-      
-      this.addCartProduct(product);
-      Alert('Producto agregado', `${product.name} agregado al carrito`, 'success');
+      this.searchTerm = product.name;
     } else {
       Alert('Producto no encontrado', `No se encontró ningún producto con el código: ${this.scanInput}`, 'error');
     }
@@ -245,6 +310,7 @@ export class Sales implements OnInit {
       existingItem.total = existingItem.price_sales * existingItem.quantity;
     } else {
       this.cart.push({ ...product, price_sales: product.price_sales, quantity: 1, total: product.price_sales });
+      Alert('Agregado al carrito', `${product.name} ha sido agregado al carrito`, 'success');
     }
   }
 

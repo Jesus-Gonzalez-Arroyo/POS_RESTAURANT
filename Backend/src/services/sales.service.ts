@@ -12,12 +12,13 @@ export const createSale = async (sale: SaleCreate) => {
     try {
         await client.query('BEGIN');
         
-        const { customer, total, paymentmethod, products, time } = sale;
+        const { customer, total, paymentmethod, paymentbreakdown, products, time } = sale;
         const ganancias = products.reduce((acc: number, product: any) => acc + (parseInt(product.earnings) * product.quantity), 0).toString();
         
+        // Guardar paymentbreakdown como JSONB si existe
         const res = await client.query(
-            'INSERT INTO sales (customer, total, paymentmethod, products, time, ganancias) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [customer, total, paymentmethod, JSON.stringify(products), time, ganancias]
+            'INSERT INTO sales (customer, total, paymentmethod, paymentbreakdown, products, time, ganancias) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [customer, total, paymentmethod, paymentbreakdown ? JSON.stringify(paymentbreakdown) : null, JSON.stringify(products), time, ganancias]
         );
         
         await descountStock(client, products);

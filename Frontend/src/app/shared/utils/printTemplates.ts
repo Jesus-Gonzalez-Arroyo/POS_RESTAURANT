@@ -1,4 +1,4 @@
-import { Sale } from '../../core/services/sales/sales';
+import { Sale } from '../../core/models';
 import { formatPriceCustom } from './formatPrice';
 
 /**
