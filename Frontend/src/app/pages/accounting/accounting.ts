@@ -1,9 +1,10 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Sales, Sale } from '../../core/services/sales/sales';
+import { Sales } from '../../core/services/sales/sales';
 import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-methods';
 import { PaymentMethod } from '../../core/models/index';
+import { Sale } from '../../core/models/index';
 import { formatPriceCustom } from '../../shared/utils/formatPrice';
 import { generateSaleReceipt, printDocument } from '../../shared/utils/printTemplates';
 import { getDate, getHours } from '../../shared/utils/formartDate';

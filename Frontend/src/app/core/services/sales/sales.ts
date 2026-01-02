@@ -2,16 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-
-export interface Sale {
-  customer: string
-  total: string
-  paymentmethod: string
-  paymentbreakdown?: Array<{ method: string; amount: number }> // Desglose de múltiples métodos de pago
-  products: Array<{ id: number; name: string; price_sales: number; quantity: number }>
-  time: Date
-  ganancias?: string
-}
+import { Sale } from '../../models';
 
 @Injectable({
   providedIn: 'root'
