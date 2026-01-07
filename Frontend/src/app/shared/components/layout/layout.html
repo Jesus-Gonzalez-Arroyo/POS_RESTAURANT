@@ -1,10 +1,15 @@
 <div>
-    <header class="h-15 bg-blue-400 text-white flex items-center px-4">
+    <header class="h-15 bg-blue-400 text-white flex items-center px-4 justify-between">
         <div class="flex items-center space-x-4">
             <div (click)="openSidebar()" class="cursor-pointer">
                 <mat-icon aria-hidden="false"  fontIcon="menu"></mat-icon>
             </div>
-            <p>Pos Farmazul</p>
+            <div>
+                <p>Pos Farmazul</p>
+            </div>
+        </div>
+        <div (click)="logout()" class="cursor-pointer hover:bg-blue-500 p-2 rounded transition-colors">
+            <mat-icon aria-hidden="false" fontIcon="logout"></mat-icon>
         </div>
     </header>
     <main class="bg-gray-100">

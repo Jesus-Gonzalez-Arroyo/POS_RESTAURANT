@@ -20,25 +20,21 @@ export class Categories implements OnInit {
 
   constructor(private categoriesService: CategoriesService, private paymentMethodsService: PaymenthMethods) {}
   
-  // Estado de la interfaz
   activeTab: 'categories' | 'payments' = 'categories';
   
-  // Datos
   categories: Category[] = [];
   paymentMethods: PaymentMethod[] = [];
   
-  // Estado de modales
   showCategoryModal = false;
   showPaymentModal = false;
   editingCategory: Category | null = null;
   editingPayment: PaymentMethod | null = null;
   
-  // Formularios
   newCategory: Partial<Category> = {
     name: '',
     description: '',
     color: 'bg-blue-500',
-    icon: 'fa-tag',
+    icon: 'fa-pills',
     is_active: true
   };
   
@@ -50,7 +46,6 @@ export class Categories implements OnInit {
     is_active: true
   };
   
-  // Opciones para seleccionar
   availableColors = [
     { value: 'bg-blue-500', label: 'Azul', class: 'bg-blue-500' },
     { value: 'bg-green-500', label: 'Verde', class: 'bg-green-500' },
@@ -62,19 +57,34 @@ export class Categories implements OnInit {
     { value: 'bg-gray-500', label: 'Gris', class: 'bg-gray-500' }
   ];
   
-  availableIcons = [
-    { value: 'fa-tag', label: 'Etiqueta' },
-    { value: 'fa-coffee', label: 'Café' },
-    { value: 'fa-utensils', label: 'Cubiertos' },
-    { value: 'fa-hamburger', label: 'Hamburguesa' },
-    { value: 'fa-pizza-slice', label: 'Pizza' },
-    { value: 'fa-cookie-bite', label: 'Galleta' },
-    { value: 'fa-ice-cream', label: 'Helado' },
-    { value: 'fa-wine-glass', label: 'Bebida' },
+  categoryIcons = [
+    { value: 'fa-pills', label: 'Pastillas' },
+    { value: 'fa-capsules', label: 'Cápsulas' },
+    { value: 'fa-prescription-bottle', label: 'Frasco' },
+    { value: 'fa-syringe', label: 'Jeringa' },
+    { value: 'fa-thermometer', label: 'Termómetro' },
+    { value: 'fa-heartbeat', label: 'Salud' },
+    { value: 'fa-stethoscope', label: 'Estetoscopio' },
+    { value: 'fa-band-aid', label: 'Curita' },
+    { value: 'fa-briefcase-medical', label: 'Botiquín' },
+    { value: 'fa-prescription', label: 'Receta' },
+    { value: 'fa-mortar-pestle', label: 'Mortero' },
+    { value: 'fa-first-aid', label: 'Primeros Auxilios' }
+  ];
+
+  paymentIcons = [
     { value: 'fa-money-bill', label: 'Dinero' },
     { value: 'fa-credit-card', label: 'Tarjeta' },
     { value: 'fa-mobile-alt', label: 'Móvil' },
-    { value: 'fa-university', label: 'Banco' }
+    { value: 'fa-university', label: 'Banco' },
+    { value: 'fa-wallet', label: 'Billetera' },
+    { value: 'fa-coins', label: 'Monedas' },
+    { value: 'fa-dollar-sign', label: 'Dólar' },
+    { value: 'fa-qrcode', label: 'QR' },
+    { value: 'fa-hand-holding-usd', label: 'Efectivo' },
+    { value: 'fa-exchange-alt', label: 'Transferencia' },
+    { value: 'fa-cash-register', label: 'Caja' },
+    { value: 'fa-receipt', label: 'Recibo' }
   ];
 
   ngOnInit() {
@@ -82,7 +92,6 @@ export class Categories implements OnInit {
     this.loadPaymentMethods();
   }
 
-  // CATEGORÍAS
   loadCategories() {
     this.categoriesService.getCategories().subscribe({
       next: (data) => {
@@ -105,7 +114,7 @@ export class Categories implements OnInit {
         name: '',
         description: '',
         color: 'bg-blue-500',
-        icon: 'fa-tag',
+        icon: 'fa-pills',
         is_active: true
       };
     }
@@ -119,7 +128,6 @@ export class Categories implements OnInit {
     }
 
     if (this.editingCategory) {
-      // Editar categoría existente
       const index = this.categories.findIndex(c => c.id === this.editingCategory!.id);
       if (index !== -1) {
         this.categories[index] = {
@@ -139,7 +147,6 @@ export class Categories implements OnInit {
         }
       });
     } else {
-      // Crear nueva categoría
       const newCat: Omit<Category, 'id'> = {
         name: this.newCategory.name!,
         description: this.newCategory.description,
@@ -202,7 +209,6 @@ export class Categories implements OnInit {
     });
   }
 
-  // MÉTODOS DE PAGO
   loadPaymentMethods() {
     this.paymentMethodsService.getPaymentMethods().subscribe({
       next: (data) => {
@@ -239,7 +245,6 @@ export class Categories implements OnInit {
     }
 
     if (this.editingPayment) {
-      // Editar método existente
       const index = this.paymentMethods.findIndex(p => p.id === this.editingPayment!.id);
       if (index !== -1) {
         this.paymentMethods[index] = {
@@ -262,7 +267,6 @@ export class Categories implements OnInit {
         }
       });
     } else {
-      // Crear nuevo método
       const newPayment: Omit<PaymentMethod, 'id'> = {
         name: capitalize(this.newPaymentMethod.name!),
         description: this.newPaymentMethod.description,

@@ -212,7 +212,7 @@
 
                 <!-- Estado de carga -->
                 <tr *ngIf="loading">
-                    <td colspan="9" class="px-6 py-12 text-center">
+                    <td colspan="12" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
                             <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-3"></i>
                             <p class="text-gray-500 font-medium">Cargando productos...</p>
@@ -222,7 +222,7 @@
 
                 <!-- Sin resultados -->
                 <tr *ngIf="!loading && !error && allProducts.length === 0">
-                    <td colspan="11" class="px-6 py-12 text-center">
+                    <td colspan="12" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center">
                             <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 font-medium text-lg">No se encontraron productos</p>

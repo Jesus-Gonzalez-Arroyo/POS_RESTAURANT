@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 import { Auth } from '../../core/services/auth/auth';
 import { Alert } from '../../shared/utils/alert';
@@ -11,13 +12,14 @@ import { Alert } from '../../shared/utils/alert';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, HttpClientModule],
+  imports: [ReactiveFormsModule, CommonModule, HttpClientModule, MatIconModule],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
 export class Login {
   loginForm: FormGroup;
   isLoading = false;
+  hidePassword = true;
 
   constructor(private fb: FormBuilder, private authService: Auth, private router: Router) {
     this.loginForm = this.fb.group({
@@ -59,5 +61,9 @@ export class Login {
       console.error('Token inválido');
       return null;
     }
+  }
+
+  togglePasswordVisibility() {
+    this.hidePassword = !this.hidePassword;
   }
 }
