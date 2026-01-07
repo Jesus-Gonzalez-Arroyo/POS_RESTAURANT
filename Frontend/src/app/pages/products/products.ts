@@ -38,7 +38,6 @@ export class Products implements OnInit {
     img: null as File | null
   };
 
-  // Validación de campos
   formErrors = {
     id_product: '',
     name: '',
@@ -57,15 +56,12 @@ export class Products implements OnInit {
     stock: false
   };
   
-  // Propiedades para el manejo de imágenes
   imagePreview: string | null = null;
   selectedFile: File | null = null;
   
-  // Propiedades de paginación
   currentPage = 1;
   itemsPerPage = 5;
 
-  // Propiedades del formulario
   isEditMode = false;
   editingProductId: number | null = null;
   
@@ -362,8 +358,6 @@ export class Products implements OnInit {
         stay: this.newProduct.stay,
         img: this.selectedFile || undefined
       };
-
-      console.log('Adding product with data:', productData);
 
       this.productsService.createProduct(productData).subscribe({
         next: (response) => {

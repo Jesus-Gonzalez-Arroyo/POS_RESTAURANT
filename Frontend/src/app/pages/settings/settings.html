@@ -1,5 +1,4 @@
 <div class="h-[calc(100vh-7.5rem)] p-7 bg-white rounded-lg shadow overflow-y-auto">
-    <!-- Header -->
     <div class="mb-6">
         <div>
             <h2 class="text-gray-700 text-2xl font-bold">Configuración del Sistema</h2>
@@ -7,7 +6,6 @@
         </div>
     </div>
 
-    <!-- Tabs Navigation -->
     <div class="overflow-x-auto mb-6">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8">
@@ -25,9 +23,7 @@
         </div>
     </div>
 
-    <!-- Categorías Tab -->
     <div *ngIf="activeTab === 'categories'">
-        <!-- Header Categorías -->
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h3 class="text-lg font-semibold text-gray-800">Categorías de Productos</h3>
@@ -43,12 +39,10 @@
             </button>
         </div>
 
-        <!-- Grid de Categorías -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div *ngFor="let category of categories" 
                 class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
                 
-                <!-- Header de la tarjeta -->
                 <div [class]="'p-4 text-white ' + category.color">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -66,14 +60,12 @@
                     </div>
                 </div>
 
-                <!-- Body de la tarjeta -->
                 <div class="p-4">
                     <div class="text-xs text-gray-500 mb-4">
                         <p>Creada: {{ formatDate(category.created_at) }}</p>
                         <p>Actualizada: {{ formatDate(category.updated_at) }}</p>
                     </div>
 
-                    <!-- Acciones -->
                     <div class="flex items-center gap-2">
                         <button 
                             (click)="openCategoryModal(category)"
@@ -101,7 +93,6 @@
             </div>
         </div>
 
-        <!-- Estado vacío -->
         <div *ngIf="categories.length === 0" class="text-center py-12">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12z" clip-rule="evenodd"/>
@@ -152,14 +143,12 @@
                     </div>
                 </div>
 
-                <!-- Body de la tarjeta -->
                 <div class="p-4">
                     <div class="text-xs text-gray-500 mb-4">
                         <p>Creado: {{ formatDate(payment.created_at) }}</p>
                         <p>Actualizado: {{ formatDate(payment.updated_at) }}</p>
                     </div>
 
-                    <!-- Acciones -->
                     <div class="flex items-center gap-2">
                         <button 
                             (click)="openPaymentModal(payment)"
@@ -256,7 +245,7 @@
             <div>
                 <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Ícono</label>
                 <div class="grid grid-cols-4 gap-2 md:gap-3">
-                    <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
+                    <div *ngFor="let icon of categoryIcons" class="flex flex-col items-center">
                         <input 
                             type="radio"
                             [id]="'icon-' + icon.value"
@@ -364,7 +353,7 @@
             <div>
                 <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Ícono</label>
                 <div class="grid grid-cols-4 gap-2 md:gap-3">
-                    <div *ngFor="let icon of availableIcons" class="flex flex-col items-center">
+                    <div *ngFor="let icon of paymentIcons" class="flex flex-col items-center">
                         <input 
                             type="radio"
                             [id]="'payment-icon-' + icon.value"

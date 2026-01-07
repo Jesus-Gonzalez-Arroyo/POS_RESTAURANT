@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import {Sidebar} from '../sidebar/sidebar';
 import {SidebarService} from '../../../core/services/sidebar/sidebar';
@@ -13,7 +13,10 @@ import {SidebarService} from '../../../core/services/sidebar/sidebar';
   standalone: true
 })
 export class Layout {
-  constructor(private sidebarService: SidebarService) {}
+  constructor(
+    private sidebarService: SidebarService,
+    private router: Router
+  ) {}
 
   openSidebar() {
     this.sidebarService.open();
@@ -21,5 +24,11 @@ export class Layout {
 
   toggleSidebar() {
     this.sidebarService.toggle();
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    this.router.navigate(['/']);
   }
 }

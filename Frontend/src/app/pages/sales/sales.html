@@ -275,7 +275,6 @@
                         </button>
                     </div>
 
-                    <!-- Selector de método de pago (solo visible si no hay múltiples pagos) -->
                     <div *ngIf="multiplePayments.length === 0">
                         <select [(ngModel)]="paymentMethod"
                             class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none text-sm md:text-base">
@@ -285,7 +284,6 @@
                         </select>
                     </div>
 
-                    <!-- Lista de múltiples métodos de pago -->
                     <div *ngIf="multiplePayments.length > 0" class="space-y-2">
                         <div *ngFor="let payment of multiplePayments; let i = index" 
                             class="border border-gray-300 rounded-lg p-3 bg-gray-50">
@@ -344,7 +342,6 @@
                     </div>
                 </div>
 
-                <!-- Ingresar valor recibido (si es efectivo y no hay múltiples pagos) -->
                 <div class="mb-4" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo' && multiplePayments.length === 0">
                     <label class="block text-gray-700 text-xs md:text-sm font-medium mb-2">Valor recibido *</label>
                     <input type="number" [(ngModel)]="change" placeholder="Ingrese el valor recibido"
@@ -352,7 +349,6 @@
                 </div>
             </div>
 
-            <!-- Sección inferior con totales y botón - siempre visible -->
             <div class="bg-white border-t border-gray-200 pt-4 mt-4 flex-shrink-0">
                 <!-- Total de la orden -->
                 <div class="mb-3 p-3 bg-gray-50 rounded-lg">
@@ -362,7 +358,7 @@
                     </div>
                 </div>
 
-                <!-- Calcular cambio (solo si es efectivo) -->
+                <!-- Calcular cambio  -->
                 <div class="mb-3 p-3 bg-gray-50 rounded-lg" *ngIf="paymentMethod.toLocaleLowerCase() === 'efectivo' && multiplePayments.length === 0">
                     <div class="flex justify-between items-center">
                         <span class="text-base md:text-lg font-semibold text-gray-700">Cambio:</span>
@@ -370,7 +366,6 @@
                     </div>
                 </div>
 
-                <!-- Botón finalizar orden -->
                 <button (click)="finalizePurchase()"
                     class="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium text-base md:text-lg"
                     [disabled]="cart.length === 0" [class.opacity-50]="cart.length === 0"
