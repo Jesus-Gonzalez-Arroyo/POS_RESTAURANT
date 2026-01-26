@@ -61,8 +61,8 @@ export class Sales implements OnInit {
   loadProducts() {
     this.isLoading = true;
     this.productsService.getAllProducts().subscribe({
-      next: (products: Product[]) => {
-        this.allProducts = products;
+      next: (response: Product[] | any) => {
+        this.allProducts = Array.isArray(response) ? response : response.products || [];
         this.isLoading = false;
       },
       error: (error: any) => {

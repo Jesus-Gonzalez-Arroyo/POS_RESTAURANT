@@ -6,6 +6,7 @@ import { PaymenthMethods } from '../../core/services/paymenthMethods/paymenth-me
 import { Bill } from '../../core/services/bill/bill';
 import { CashRegister, Transaction, PaymentMethod } from '../../core/models/index';
 import { Alert } from '../../shared/utils/alert';
+import { SendEmails } from '../../core/services/sendEmails/send-emails';
 
 @Component({
   selector: 'app-box',
@@ -40,7 +41,8 @@ export class Box implements OnInit {
   constructor(
     private boxRegister: BoxRegister,
     private paymentMethodsService: PaymenthMethods,
-    private billService: Bill
+    private billService: Bill,
+    private emailsService: SendEmails
   ) {}
 
   ngOnInit() {
@@ -171,6 +173,17 @@ export class Box implements OnInit {
       transactions: []
     };
 
+    this.emailsService.sendRegisterOpeningEmail({
+      openingAmount: this.openingAmount,
+      openingDate: this.currentRegister.openingdate.toISOString(),
+      openedBy: this.currentRegister.openedby,
+
+    }).subscribe({
+      error: (error) => {
+        console.error('Error enviando email de apertura:', error);
+      }
+    });
+
     localStorage.setItem('currentRegister', JSON.stringify(this.currentRegister));
     this.showOpenModal = false;
     this.openingAmount = 0;
@@ -211,6 +224,8 @@ export class Box implements OnInit {
         }
       }
     );
+    
+    this.sendEmailOnClose();
 
     // Limpiar caja actual
     localStorage.removeItem('currentRegister');
@@ -219,6 +234,29 @@ export class Box implements OnInit {
     this.showCloseModal = false;
     this.closingAmount = 0;
     this.closingNotes = '';
+  }
+
+  sendEmailOnClose() {
+    if (!this.currentRegister) return;
+    this.emailsService.sendRegisterClosingEmail({
+      openingDate: this.currentRegister.openingdate.toISOString(),
+      closingDate: this.currentRegister.closingdate!.toISOString(),
+      openingAmount: this.currentRegister.openingamount,
+      closingAmount: this.currentRegister.closingamount!,
+      expectedAmount: this.currentRegister.expectedamount!,
+      difference: this.currentRegister.difference!,
+      totalSales: this.currentRegister.totalsales,
+      totalExpenses: this.currentRegister.totalexpenses,
+      salesByMethod: this.currentRegister.salesbymethod,
+      cashAmount: this.cashSales,
+      openedBy: this.currentRegister.openedby,
+      closedBy: this.currentRegister.closedby!,
+      notes: this.currentRegister.notes || ''
+    }).subscribe({
+      error: (error) => {
+        console.error('Error enviando email de cierre:', error);
+      }
+    });
   }
 
   // Agregar transacción manual

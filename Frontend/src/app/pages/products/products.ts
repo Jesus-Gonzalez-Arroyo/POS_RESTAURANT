@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Modal } from '../../shared/components/modal/modal/modal';
-import { ProductsService } from '../../core/services/products/products.service';
+import { ProductsService, PaginatedProducts } from '../../core/services/products/products.service';
 import { Category, Product } from '../../core/models/index';
 import { Alert, ConfirmAlert } from '../../shared/utils/alert';
 import { Categories } from '../../core/services/categories/categories';
@@ -60,7 +60,10 @@ export class Products implements OnInit {
   selectedFile: File | null = null;
   
   currentPage = 1;
-  itemsPerPage = 5;
+  itemsPerPage = 10;
+  totalProducts = 0;
+  totalPages = 0;
+  useFrontendPagination = false; // Nueva variable para controlar el tipo de paginación
 
   isEditMode = false;
   editingProductId: number | null = null;
@@ -78,16 +81,47 @@ export class Products implements OnInit {
     this.loading = true;
     this.error = null;
     
-    this.productsService.getAllProducts().subscribe({
-      next: (products) => {
-        this.allProducts = products;
-        this.loading = false;
-      },
-      error: (error) => {
-        Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
-        console.error('Error cargando productos:', error);
-      }
-    });
+    if (this.useFrontendPagination) {
+      // Cargar todos los productos para paginación en frontend
+      this.productsService.getAllProducts().subscribe({
+        next: (response) => {
+          if (Array.isArray(response)) {
+            this.allProducts = response;
+            this.totalProducts = response.length;
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
+          console.error('Error cargando productos:', error);
+          this.loading = false;
+        }
+      });
+    } else {
+      // Usar paginación del backend
+      this.productsService.getAllProducts(this.currentPage, this.itemsPerPage).subscribe({
+        next: (response) => {
+          if (!Array.isArray(response)) {
+            const paginatedResponse = response as PaginatedProducts;
+            this.allProducts = paginatedResponse.products;
+            this.totalProducts = paginatedResponse.total;
+            this.totalPages = paginatedResponse.totalPages;
+            this.currentPage = paginatedResponse.page;
+          } else {
+            // Fallback si el backend aún no soporta paginación
+            this.allProducts = response;
+            this.totalProducts = response.length;
+            this.totalPages = Math.ceil(response.length / this.itemsPerPage);
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          Alert('Error', 'No se pudieron cargar los productos. Intente nuevamente más tarde.', 'error');
+          console.error('Error cargando productos:', error);
+          this.loading = false;
+        }
+      });
+    }
   }
 
   loadCategories() {
@@ -144,57 +178,70 @@ export class Products implements OnInit {
 
   // Obtener productos filtrados (sin paginación)
   get filteredProducts() {
-    let filteredProducts = this.allProducts;
+    if (this.useFrontendPagination) {
+      let filteredProducts = this.allProducts;
 
-    // Filtrar por búsqueda
-    if (this.searchTerm) {
-      filteredProducts = filteredProducts.filter(product => 
-        product.name.toLowerCase().includes(this.searchTerm.toLowerCase())
-      );
+      // Filtrar por búsqueda
+      if (this.searchTerm) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        );
+      }
+
+      // Filtrar por categoría
+      if (this.selectedCategory !== 'Todas') {
+        filteredProducts = filteredProducts.filter(product => 
+          product.category === this.selectedCategory
+        );
+      }
+
+      // Filtrar por disponibilidad
+      if (this.selectedAvailability !== 'Todas') {
+        const isAvailable = this.selectedAvailability === 'Disponible';
+        filteredProducts = filteredProducts.filter(product => 
+          product.availability === isAvailable
+        );
+      }
+
+      // Filtrar por estancia
+      if (this.selectedStay !== 'Todas') {
+        filteredProducts = filteredProducts.filter(product => 
+          product.stay === this.selectedStay
+        );
+      }
+
+      return filteredProducts;
     }
-
-    // Filtrar por categoría
-    if (this.selectedCategory !== 'Todas') {
-      filteredProducts = filteredProducts.filter(product => 
-        product.category === this.selectedCategory
-      );
-    }
-
-    // Filtrar por disponibilidad
-    if (this.selectedAvailability !== 'Todas') {
-      const isAvailable = this.selectedAvailability === 'Disponible';
-      filteredProducts = filteredProducts.filter(product => 
-        product.availability === isAvailable
-      );
-    }
-
-    // Filtrar por estancia
-    if (this.selectedStay !== 'Todas') {
-      filteredProducts = filteredProducts.filter(product => 
-        product.stay === this.selectedStay
-      );
-    }
-
-    return filteredProducts;
+    
+    // Para paginación del backend, los productos ya vienen paginados
+    return this.allProducts;
   }
 
   // Obtener productos de la página actual
   get products() {
-    const filtered = this.filteredProducts;
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return filtered.slice(startIndex, endIndex);
+    if (this.useFrontendPagination) {
+      const filtered = this.filteredProducts;
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      return filtered.slice(startIndex, endIndex);
+    }
+    
+    // Para paginación del backend, devolver los productos tal cual
+    return this.allProducts;
   }
 
   // Calcular total de páginas
-  get totalPages() {
-    return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+  get totalPagesCalculated() {
+    if (this.useFrontendPagination) {
+      return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+    }
+    return this.totalPages;
   }
 
   // Obtener array de páginas para el paginador
   get pages() {
     const pages = [];
-    for (let i = 1; i <= this.totalPages; i++) {
+    for (let i = 1; i <= this.totalPagesCalculated; i++) {
       pages.push(i);
     }
     return pages;
@@ -202,12 +249,23 @@ export class Products implements OnInit {
 
   // Información de paginación
   get paginationInfo() {
+    if (this.useFrontendPagination) {
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
+      const endIndex = Math.min(this.currentPage * this.itemsPerPage, this.filteredProducts.length);
+      return {
+        start: startIndex,
+        end: endIndex,
+        total: this.filteredProducts.length
+      };
+    }
+    
+    // Paginación del backend
     const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
-    const endIndex = Math.min(this.currentPage * this.itemsPerPage, this.filteredProducts.length);
+    const endIndex = Math.min(this.currentPage * this.itemsPerPage, this.totalProducts);
     return {
       start: startIndex,
       end: endIndex,
-      total: this.filteredProducts.length
+      total: this.totalProducts
     };
   }
 
@@ -302,26 +360,38 @@ export class Products implements OnInit {
 
   // Funciones de paginación
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
+    if (page >= 1 && page <= this.totalPagesCalculated) {
       this.currentPage = page;
+      if (!this.useFrontendPagination) {
+        this.loadProducts();
+      }
     }
   }
 
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      if (!this.useFrontendPagination) {
+        this.loadProducts();
+      }
     }
   }
 
   nextPage() {
-    if (this.currentPage < this.totalPages) {
+    if (this.currentPage < this.totalPagesCalculated) {
       this.currentPage++;
+      if (!this.useFrontendPagination) {
+        this.loadProducts();
+      }
     }
   }
 
   changeItemsPerPage(newSize: number) {
     this.itemsPerPage = newSize;
     this.currentPage = 1;
+    if (!this.useFrontendPagination) {
+      this.loadProducts();
+    }
   }
 
   // Funciones del formulario

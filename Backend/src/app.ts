@@ -12,6 +12,7 @@ import router_categories from './routes/categories.route';
 import router_paymentMethods from './routes/paymentMethods.route';
 import router_dashboard from './routes/dashboard.route';
 import router_returning from './routes/returning.route';
+import router_emails from './routes/emails.route';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/v1/categories', router_categories);
 app.use('/api/v1/paymentMethods', router_paymentMethods);
 app.use('/api/v1/dashboard', router_dashboard);
 app.use('/api/v1/returns', router_returning);
+app.use('/api/v1/emails', router_emails);
 
 app.use(errorHandler);
 
