@@ -1,9 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Product } from '../../models/index';
 import { environment } from '../../../../environments/environment';
+
+export interface PaginatedProducts {
+  products: Product[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +20,13 @@ export class ProductsService {
 
   constructor(private http: HttpClient) { }
 
-  getAllProducts(): Observable<Product[]> {
+  getAllProducts(page?: number, limit?: number): Observable<PaginatedProducts | Product[]> {
+    if (page && limit) {
+      const params = new HttpParams()
+        .set('page', page.toString())
+        .set('limit', limit.toString());
+      return this.http.get<PaginatedProducts>(this.baseUrl, { params });
+    }
     return this.http.get<Product[]>(this.baseUrl);
   }
 

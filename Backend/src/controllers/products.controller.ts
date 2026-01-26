@@ -3,8 +3,11 @@ import e, { Request, Response } from 'express'
 
 export const fetchAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const products = await getAllProducts()
-    res.json(products)
+    const page = req.query.page ? parseInt(req.query.page as string) : undefined
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    
+    const result = await getAllProducts(page, limit)
+    res.json(result)
   } catch (error) {
     console.error('Error fetching products:', error)
     res.status(500).json({ error: 'Internal server error' })

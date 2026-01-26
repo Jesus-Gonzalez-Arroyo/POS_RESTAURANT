@@ -1,9 +1,34 @@
 import pool from '../config/connectDB'
 import { Product } from '../interfaces/product.interfaces'
 
-export const getAllProducts = async (): Promise<Product[]> => {
-  const res = await pool.query('SELECT * FROM products')
-  return res.rows
+export const getAllProducts = async (page?: number, limit?: number): Promise<{ products: Product[], total: number, page: number, totalPages: number }> => {
+  // Si no se proporciona paginación, devolver todos los productos
+  if (!page || !limit) {
+    const res = await pool.query('SELECT * FROM products ORDER BY id DESC')
+    return {
+      products: res.rows,
+      total: res.rows.length,
+      page: 1,
+      totalPages: 1
+    }
+  }
+
+  // Calcular el offset
+  const offset = (page - 1) * limit
+  
+  // Obtener el total de productos
+  const countRes = await pool.query('SELECT COUNT(*) FROM products')
+  const total = parseInt(countRes.rows[0].count)
+  
+  // Obtener los productos paginados
+  const res = await pool.query('SELECT * FROM products ORDER BY id DESC LIMIT $1 OFFSET $2', [limit, offset])
+  
+  return {
+    products: res.rows,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit)
+  }
 }
 
 export const getProductById = async (id: string): Promise<Product | null> => {
